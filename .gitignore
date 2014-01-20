@@ -20,3 +20,8 @@ _cgo_export.*
 _testmain.go
 
 *.exe
+
+# editors and IDEs
+
+container.sublime-project
+container.sublime-workspace
