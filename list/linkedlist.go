@@ -1,5 +1,9 @@
 package list
 
+import (
+	"errors"
+)
+
 // Node is a node of the list
 type Node struct {
 	next  *Node       // The node after this node in the list
@@ -68,6 +72,46 @@ func (l *LinkedList) Last() *Node {
 	return l.last
 }
 
+// Get returns the node with the given index or nil
+func (l *LinkedList) Get(i int) (*Node, error) {
+	if i < 0 || i >= l.len {
+		return nil, errors.New("index bouunds out of range")
+	}
+
+	j := 0
+
+	for n := l.First(); n != nil; n = n.Next() {
+		if i == j {
+			return n, nil
+		}
+
+		j++
+	}
+
+	return nil, nil
+}
+
+// Set replaces the value in the list with the given value
+func (l *LinkedList) Set(i int, v interface{}) error {
+	if i < 0 || i >= l.len {
+		return errors.New("index bouunds out of range")
+	}
+
+	j := 0
+
+	for n := l.First(); n != nil; n = n.Next() {
+		if i == j {
+			n.Value = v
+
+			return nil
+		}
+
+		j++
+	}
+
+	return nil
+}
+
 // Copy returns an exact copy of the list
 func (l *LinkedList) Copy() *LinkedList {
 	n := New()
@@ -108,6 +152,10 @@ func (l *LinkedList) findParent(c *Node) *Node {
 
 // insertAfter creates a new node from a value, inserts it after a given node and returns the new one
 func (l *LinkedList) insertAfter(v interface{}, p *Node) *Node {
+	if p != nil && p.list != l {
+		return nil
+	}
+
 	n := l.newNode(v)
 
 	// insert first node
@@ -127,8 +175,37 @@ func (l *LinkedList) insertAfter(v interface{}, p *Node) *Node {
 	return n
 }
 
-// remove removes a given node from the list
-func (l *LinkedList) remove(c *Node) *Node {
+// insertBefore creates a new node from a value, inserts it before a given node and returns the new one
+func (l *LinkedList) insertBefore(v interface{}, p *Node) *Node {
+	if p != nil && p.list != l {
+		return nil
+	}
+
+	n := l.newNode(v)
+
+	// insert first node
+	if p == nil {
+		l.first = n
+		l.last = n
+	} else {
+		if p == l.first {
+			l.first = n
+		} else {
+			pp := l.findParent(p)
+
+			pp.next = n
+		}
+
+		n.next = p
+	}
+
+	l.len++
+
+	return n
+}
+
+// Remove removes a given node from the list
+func (l *LinkedList) Remove(c *Node) *Node {
 	if c == nil || c.list != l || l.len == 0 {
 		return nil
 	}
@@ -162,10 +239,42 @@ func (l *LinkedList) remove(c *Node) *Node {
 
 // Pop removes and returns the last node or nil
 func (l *LinkedList) Pop() *Node {
-	return l.remove(l.last)
+	return l.Remove(l.last)
 }
 
 // Push creates a new node from a value, inserts it as the last node and returns it
 func (l *LinkedList) Push(v interface{}) *Node {
 	return l.insertAfter(v, l.last)
+}
+
+// Shift removes and returns the first node or nil
+func (l *LinkedList) Shift() *Node {
+	return l.Remove(l.first)
+}
+
+// Unshift creates a new node from a value, inserts it as the first node and returns it
+func (l *LinkedList) Unshift(v interface{}) *Node {
+	return l.insertBefore(v, l.first)
+}
+
+// Contains returns true if the value exists in the list
+func (l *LinkedList) Contains(v interface{}) bool {
+	_, ok := l.IndexOf(v)
+
+	return ok
+}
+
+// Contains returns the index of an occurence of the given value and true or -1 and false if the value does not exist
+func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
+	i := 0
+
+	for n := l.First(); n != nil; n = n.Next() {
+		if n.Value == v {
+			return i, true
+		}
+
+		i++
+	}
+
+	return -1, false
 }

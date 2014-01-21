@@ -36,6 +36,7 @@ func TestBasic(t *testing.T) {
 	Nil(t, l.First())
 	Nil(t, l.Last())
 	Nil(t, l.Pop())
+	Nil(t, l.Shift())
 
 	fillList(t, l)
 
@@ -61,6 +62,32 @@ func TestBasic(t *testing.T) {
 
 		i--
 		n = l.Pop()
+	}
+
+	Equal(t, i, -1)
+	Nil(t, n)
+	Equal(t, l.Len(), 0)
+
+	for i, va := range v {
+		l.Unshift(va)
+
+		Equal(t, l.Len(), i+1)
+		Equal(t, l.First().Value, va)
+		Equal(t, l.Last().Value, v[0])
+	}
+
+	Equal(t, l.Len(), vLen)
+
+	i = vLen - 1
+	n = l.Shift()
+
+	for i > -1 && n != nil {
+		Equal(t, v[i], n.Value)
+		Nil(t, n.Next())
+		Equal(t, l.Len(), i)
+
+		i--
+		n = l.Shift()
 	}
 
 	Equal(t, i, -1)
@@ -98,4 +125,89 @@ func TestCopy(t *testing.T) {
 
 	Nil(t, n1)
 	Nil(t, n2)
+}
+
+func TestFind(t *testing.T) {
+	l := New()
+
+	for _, vi := range v {
+		f, ok := l.IndexOf(vi)
+
+		Equal(t, f, -1)
+		Equal(t, ok, false)
+
+		ok = l.Contains(vi)
+
+		Equal(t, ok, false)
+	}
+
+	fillList(t, l)
+
+	for i, vi := range v {
+		f, ok := l.IndexOf(vi)
+
+		Equal(t, f, i)
+		Equal(t, ok, true)
+
+		ok = l.Contains(vi)
+
+		Equal(t, ok, true)
+	}
+}
+
+func TestGetSet(t *testing.T) {
+	l := New()
+
+	for i, _ := range v {
+		n, err := l.Get(i)
+
+		Nil(t, n)
+		NotNil(t, err)
+
+		err = l.Set(i, i+10)
+
+		NotNil(t, err)
+
+		n, err = l.Get(i)
+
+		Nil(t, n)
+		NotNil(t, err)
+	}
+
+	fillList(t, l)
+
+	for i, vi := range v {
+		n, err := l.Get(i)
+
+		Equal(t, n.Value, vi)
+		Nil(t, err)
+
+		err = l.Set(i, i+10)
+
+		Nil(t, err)
+
+		n, err = l.Get(i)
+
+		Equal(t, n.Value, i+10)
+		Nil(t, err)
+	}
+}
+
+func TestRemove(t *testing.T) {
+	l1 := newFilledList(t)
+	l2 := newFilledList(t)
+
+	// do not allow removing elements from another list
+	n1, _ := l1.Get(1)
+	n2, _ := l2.Get(2)
+
+	Nil(t, l1.Remove(n2))
+	Equal(t, l1.Len(), vLen)
+	Nil(t, l2.Remove(n1))
+	Equal(t, l2.Len(), vLen)
+
+	Equal(t, n1.Value, l1.Remove(n1).Value)
+	Equal(t, l1.Len(), vLen-1)
+	Equal(t, n2.Value, l2.Remove(n2).Value)
+	Equal(t, l2.Len(), vLen-1)
 }
