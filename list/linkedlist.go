@@ -30,11 +30,27 @@ func New() *LinkedList {
 
 // Init initializes or clears the list
 func (l *LinkedList) Init() *LinkedList {
+	l.Clear()
+
+	return l
+}
+
+// Clear removes all nodes from the list
+func (l *LinkedList) Clear() {
+	i := l.first
+
+	for i != nil {
+		j := i.Next()
+
+		i.list = nil
+		i.next = nil
+
+		i = j
+	}
+
 	l.first = nil
 	l.last = nil
 	l.len = 0
-
-	return l
 }
 
 // Len returns the curren list length
@@ -50,6 +66,17 @@ func (l *LinkedList) First() *Node {
 // Last returns the last node of the list or nil
 func (l *LinkedList) Last() *Node {
 	return l.last
+}
+
+// Copy returns an exact copy of the list
+func (l *LinkedList) Copy() *LinkedList {
+	n := New()
+
+	for i := l.First(); i != nil; i = i.Next() {
+		n.Push(i.Value)
+	}
+
+	return n
 }
 
 // newNode initializes a new node for the list
