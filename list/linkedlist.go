@@ -264,7 +264,7 @@ func (l *LinkedList) Contains(v interface{}) bool {
 	return ok
 }
 
-// Contains returns the index of an occurence of the given value and true or -1 and false if the value does not exist
+// IndexOf returns the index of an occurence of the given value and true or -1 and false if the value does not exist
 func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
 	i := 0
 

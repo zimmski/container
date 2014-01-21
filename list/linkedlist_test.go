@@ -158,7 +158,7 @@ func TestFind(t *testing.T) {
 func TestGetSet(t *testing.T) {
 	l := New()
 
-	for i, _ := range v {
+	for i := range v {
 		n, err := l.Get(i)
 
 		Nil(t, n)
