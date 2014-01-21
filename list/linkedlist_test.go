@@ -95,6 +95,178 @@ func TestBasic(t *testing.T) {
 	Equal(t, l.Len(), 0)
 }
 
+func TestInserts(t *testing.T) {
+	l := newFilledList(t)
+
+	i := 2
+	va := 1993
+
+	n, _ := l.Get(i)
+	Equal(t, n.Value, v[i])
+
+	l.InsertAfter(va, n)
+
+	Equal(t, l.Len(), vLen+1)
+	n, _ = l.Get(i)
+	Equal(t, n.Value, v[i])
+	r, _ := l.Get(i + 1)
+	Equal(t, r.Value, va)
+
+	l.InsertBefore(va, n)
+
+	Equal(t, l.Len(), vLen+2)
+	n, _ = l.Get(i + 1)
+	Equal(t, n.Value, v[i])
+	r, _ = l.Get(i)
+	Equal(t, r.Value, va)
+
+	// do not allow inserting with nodes of other lists
+	l2 := newFilledList(t)
+
+	Nil(t, l2.InsertAfter(v, n))
+	Nil(t, l2.InsertBefore(v, n))
+}
+
+func TestRemove(t *testing.T) {
+	l1 := newFilledList(t)
+	l2 := newFilledList(t)
+
+	// do not allow removing elements from another list
+	n1, _ := l1.Get(1)
+	n2, _ := l2.Get(2)
+
+	Nil(t, l1.Remove(n2))
+	Equal(t, l1.Len(), vLen)
+	Nil(t, l2.Remove(n1))
+	Equal(t, l2.Len(), vLen)
+
+	Equal(t, n1.Value, l1.Remove(n1).Value)
+	Equal(t, l1.Len(), vLen-1)
+	Equal(t, n2.Value, l2.Remove(n2).Value)
+	Equal(t, l2.Len(), vLen-1)
+
+	l1 = newFilledList(t)
+
+	// out of bound
+	_, err := l1.RemoveAt(-1)
+	NotNil(t, err)
+	_, err = l1.RemoveAt(l1.Len() + 1)
+	NotNil(t, err)
+
+	// Remove Middle
+	n1, err = l1.RemoveAt(1)
+	Nil(t, err)
+	Equal(t, n1.Value, v[1])
+	Nil(t, n1.Next())
+	n2, _ = l1.Get(1)
+	Equal(t, n2.Value, v[2])
+	Equal(t, n2.Next().Value, v[3])
+	Equal(t, l1.Len(), 3)
+
+	// Remove First
+	n1, err = l1.RemoveAt(0)
+	Nil(t, err)
+	Equal(t, n1.Value, v[0])
+	Nil(t, n1.Next())
+	n2 = l1.First()
+	Equal(t, n2.Value, v[2])
+	Equal(t, n2.Next().Value, v[3])
+	Equal(t, l1.Len(), 2)
+
+	// Remove Last
+	n1, err = l1.RemoveAt(1)
+	Nil(t, err)
+	Equal(t, n1.Value, v[3])
+	Nil(t, n1.Next())
+	n2 = l1.Last()
+	Equal(t, n2.Value, v[2])
+	Nil(t, n2.Next())
+	Equal(t, l1.Len(), 1)
+
+	// Remove very last element
+	n1, err = l1.RemoveAt(0)
+	Nil(t, err)
+	Equal(t, n1.Value, v[2])
+	Nil(t, n1.Next())
+	Equal(t, l1.Len(), 0)
+	Nil(t, l1.First())
+	Nil(t, l1.Last())
+}
+
+func TestRemoveOccurrence(t *testing.T) {
+	l := New()
+
+	for i := 0; i < 5; i++ {
+		l.Push(i % 2)
+	}
+
+	n := l.RemoveFirstOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 4)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.First().Next().Value, 0)
+	Equal(t, l.First().Next().Next().Value, 1)
+	Equal(t, l.Last().Value, 0)
+
+	n = l.RemoveFirstOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 3)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.First().Next().Value, 1)
+	Equal(t, l.Last().Value, 0)
+
+	n = l.RemoveFirstOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 2)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.Last().Value, 1)
+
+	n = l.RemoveFirstOccurrence(0)
+	Nil(t, n)
+	Equal(t, l.Len(), 2)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.Last().Value, 1)
+
+	l.Clear()
+
+	for i := 0; i < 5; i++ {
+		l.Push(i % 2)
+	}
+
+	n = l.RemoveLastOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 4)
+	Equal(t, l.First().Value, 0)
+	Equal(t, l.First().Next().Value, 1)
+	Equal(t, l.First().Next().Next().Value, 0)
+	Equal(t, l.Last().Value, 1)
+
+	n = l.RemoveLastOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 3)
+	Equal(t, l.First().Value, 0)
+	Equal(t, l.First().Next().Value, 1)
+	Equal(t, l.Last().Value, 1)
+
+	n = l.RemoveLastOccurrence(0)
+	Equal(t, n.Value, 0)
+	Nil(t, n.Next())
+	Equal(t, l.Len(), 2)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.Last().Value, 1)
+
+	n = l.RemoveLastOccurrence(0)
+	Nil(t, n)
+	Equal(t, l.Len(), 2)
+	Equal(t, l.First().Value, 1)
+	Equal(t, l.Last().Value, 1)
+}
+
 func TestClear(t *testing.T) {
 	l := newFilledList(t)
 
@@ -191,23 +363,4 @@ func TestGetSet(t *testing.T) {
 		Equal(t, n.Value, i+10)
 		Nil(t, err)
 	}
-}
-
-func TestRemove(t *testing.T) {
-	l1 := newFilledList(t)
-	l2 := newFilledList(t)
-
-	// do not allow removing elements from another list
-	n1, _ := l1.Get(1)
-	n2, _ := l2.Get(2)
-
-	Nil(t, l1.Remove(n2))
-	Equal(t, l1.Len(), vLen)
-	Nil(t, l2.Remove(n1))
-	Equal(t, l2.Len(), vLen)
-
-	Equal(t, n1.Value, l1.Remove(n1).Value)
-	Equal(t, l1.Len(), vLen-1)
-	Equal(t, n2.Value, l2.Remove(n2).Value)
-	Equal(t, l2.Len(), vLen-1)
 }
