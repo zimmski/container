@@ -364,6 +364,13 @@ func (l *LinkedList) Push(v interface{}) *Node {
 	return l.InsertAfter(v, l.last)
 }
 
+// PushList adds the values of a list to the end of the list
+func (l *LinkedList) PushList(l2 *LinkedList) {
+	for i := l2.First(); i != nil; i = i.Next() {
+		l.Push(i.Value)
+	}
+}
+
 // Shift removes and returns the first node or nil
 func (l *LinkedList) Shift() *Node {
 	return l.Remove(l.first)
@@ -372,6 +379,13 @@ func (l *LinkedList) Shift() *Node {
 // Unshift creates a new node from a value, inserts it as the first node and returns it
 func (l *LinkedList) Unshift(v interface{}) *Node {
 	return l.InsertBefore(v, l.first)
+}
+
+// UnshiftList adds the values of a list to the front of the list
+func (l *LinkedList) UnshiftList(l2 *LinkedList) {
+	for i := l2.First(); i != nil; i = i.Next() {
+		l.Unshift(i.Value)
+	}
 }
 
 // Contains returns true if the value exists in the list

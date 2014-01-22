@@ -378,3 +378,23 @@ func TestGetSet(t *testing.T) {
 		Nil(t, err)
 	}
 }
+
+func TestAddLists(t *testing.T) {
+	l1 := New()
+	l1.Push(3)
+	l1.Push(4)
+
+	l2 := New()
+	l2.Push(5)
+	l2.Push(6)
+
+	l3 := New()
+	l3.Push(2)
+	l3.Push(1)
+
+	l1.PushList(l2)
+	Equal(t, l1.ToArray(), []interface{}{3, 4, 5, 6})
+
+	l1.UnshiftList(l3)
+	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+}
