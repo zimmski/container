@@ -219,13 +219,11 @@ func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
 	return n
 }
 
-// Remove removes a given node from the list
-func (l *LinkedList) Remove(c *Node) *Node {
+// remove removes a given node from the list using the provided parent p
+func (l *LinkedList) remove(c *Node, p *Node) *Node {
 	if c == nil || c.list != l || l.len == 0 {
 		return nil
 	}
-
-	r := c
 
 	if c == l.first {
 		l.first = c.next
@@ -235,42 +233,9 @@ func (l *LinkedList) Remove(c *Node) *Node {
 			l.last = nil
 		}
 	} else {
-		p := l.findParent(c)
-
-		p.next = c.next
-
-		if c == l.last {
-			l.last = p
+		if p == nil {
+			p = l.findParent(c)
 		}
-	}
-
-	r.list = nil
-	r.next = nil
-
-	l.len--
-
-	return r
-}
-
-// RemoveAt removes a node from the list at the given index
-func (l *LinkedList) RemoveAt(i int) (*Node, error) {
-	if i < 0 || i >= l.len {
-		return nil, errors.New("index bounds out of range")
-	}
-
-	var c *Node
-
-	if i == 0 {
-		c = l.first
-		l.first = c.next
-
-		// c is the last node
-		if c == l.last {
-			l.last = nil
-		}
-	} else {
-		p, _ := l.Get(i - 1)
-		c = p.next
 
 		p.next = c.next
 
@@ -284,7 +249,26 @@ func (l *LinkedList) RemoveAt(i int) (*Node, error) {
 
 	l.len--
 
-	return c, nil
+	return c
+}
+
+// Remove removes a given node from the list
+func (l *LinkedList) Remove(c *Node) *Node {
+	return l.remove(c, nil)
+}
+
+// RemoveAt removes a node from the list at the given index
+func (l *LinkedList) RemoveAt(i int) (*Node, error) {
+	switch {
+	case i < 0 || i >= l.len:
+		return nil, errors.New("index bounds out of range")
+	case i == 0:
+		return l.remove(l.first, nil), nil
+	default:
+		p, _ := l.Get(i - 1)
+
+		return l.remove(p.next, p), nil
+	}
 }
 
 // RemoveFirstOccurrence removes the first node with the given value from the list and returns it or nil
@@ -302,20 +286,7 @@ func (l *LinkedList) RemoveFirstOccurrence(v interface{}) *Node {
 	}
 
 	if c != nil {
-		if c == l.first {
-			l.first = c.next
-		} else {
-			p.next = c.next
-		}
-
-		if c == l.last {
-			l.last = p
-		}
-
-		c.list = nil
-		c.next = nil
-
-		l.len--
+		l.remove(c, p)
 	}
 
 	return c
@@ -335,20 +306,7 @@ func (l *LinkedList) RemoveLastOccurrence(v interface{}) *Node {
 	}
 
 	if c != nil {
-		if c == l.first {
-			l.first = c.next
-		} else {
-			p.next = c.next
-		}
-
-		if c == l.last {
-			l.last = p
-		}
-
-		c.list = nil
-		c.next = nil
-
-		l.len--
+		l.remove(c, p)
 	}
 
 	return c
