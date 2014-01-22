@@ -123,6 +123,21 @@ func (l *LinkedList) Copy() *LinkedList {
 	return n
 }
 
+// ToArray returns a copy of the list as slice
+func (l *LinkedList) ToArray() []interface{} {
+	a := make([]interface{}, l.len)
+
+	j := 0
+
+	for i := l.First(); i != nil; i = i.Next() {
+		a[j] = i.Value
+
+		j++
+	}
+
+	return a
+}
+
 // newNode initializes a new node for the list
 func (l *LinkedList) newNode(v interface{}) *Node {
 	return &Node{

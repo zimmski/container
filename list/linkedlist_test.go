@@ -95,6 +95,20 @@ func TestBasic(t *testing.T) {
 	Equal(t, l.Len(), 0)
 }
 
+func TestToArray(t *testing.T) {
+	l := New()
+	Equal(t, l.ToArray(), []interface{}{})
+
+	fillList(t, l)
+	Equal(t, l.ToArray(), v)
+
+	l.Shift()
+	Equal(t, l.ToArray(), v[1:])
+
+	l.Pop()
+	Equal(t, l.ToArray(), v[1:3])
+}
+
 func TestInserts(t *testing.T) {
 	l := newFilledList(t)
 
