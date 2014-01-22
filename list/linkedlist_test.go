@@ -318,12 +318,10 @@ func TestFind(t *testing.T) {
 
 	for _, vi := range v {
 		f, ok := l.IndexOf(vi)
-
 		Equal(t, f, -1)
 		Equal(t, ok, false)
 
 		ok = l.Contains(vi)
-
 		Equal(t, ok, false)
 	}
 
@@ -331,12 +329,32 @@ func TestFind(t *testing.T) {
 
 	for i, vi := range v {
 		f, ok := l.IndexOf(vi)
-
 		Equal(t, f, i)
 		Equal(t, ok, true)
 
 		ok = l.Contains(vi)
+		Equal(t, ok, true)
+	}
 
+	l.Clear()
+
+	f, ok := l.IndexOf(0)
+	Equal(t, f, -1)
+	Equal(t, ok, false)
+
+	f, ok = l.LastIndexOf(0)
+	Equal(t, f, -1)
+	Equal(t, ok, false)
+
+	for i := 0; i < 4; i++ {
+		l.Push(0)
+
+		f, ok = l.IndexOf(0)
+		Equal(t, f, 0)
+		Equal(t, ok, true)
+
+		f, ok = l.LastIndexOf(0)
+		Equal(t, f, i)
 		Equal(t, ok, true)
 	}
 }

@@ -395,7 +395,7 @@ func (l *LinkedList) Contains(v interface{}) bool {
 	return ok
 }
 
-// IndexOf returns the index of an occurence of the given value and true or -1 and false if the value does not exist
+// IndexOf returns the first index of an occurence of the given value and true or -1 and false if the value does not exist
 func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
 	i := 0
 
@@ -408,4 +408,20 @@ func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
 	}
 
 	return -1, false
+}
+
+// LastIndexOf returns the last index of an occurence of the given value and true or -1 and false if the value does not exist
+func (l *LinkedList) LastIndexOf(v interface{}) (int, bool) {
+	i := 0
+	j := -1
+
+	for n := l.First(); n != nil; n = n.Next() {
+		if n.Value == v {
+			j = i
+		}
+
+		i++
+	}
+
+	return j, j != -1
 }
