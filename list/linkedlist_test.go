@@ -140,6 +140,10 @@ func TestInserts(t *testing.T) {
 	Nil(t, l2.InsertAfter(v, n))
 	Nil(t, l2.InsertBefore(v, n))
 
+	// do not allow inserting before and after with nil node
+	Nil(t, l.InsertAfter(v, nil))
+	Nil(t, l.InsertBefore(v, nil))
+
 	// InsertAt
 	l1 := newFilledList(t)
 

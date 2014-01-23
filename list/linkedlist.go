@@ -167,7 +167,7 @@ func (l *LinkedList) findParent(c *Node) *Node {
 
 // InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
 func (l *LinkedList) InsertAfter(v interface{}, p *Node) *Node {
-	if p != nil && p.list != l {
+	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
 		return nil
 	}
 
@@ -192,7 +192,7 @@ func (l *LinkedList) InsertAfter(v interface{}, p *Node) *Node {
 
 // InsertBefore creates a new node from a value, inserts it before a given node and returns the new one
 func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
-	if p != nil && p.list != l {
+	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
 		return nil
 	}
 
