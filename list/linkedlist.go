@@ -219,6 +219,32 @@ func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
 	return n
 }
 
+// InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
+func (l *LinkedList) InsertAt(i int, v interface{}) (*Node, error) {
+	if i < 0 || i > l.len {
+		return nil, errors.New("index bounds out of range")
+	}
+
+	n := l.newNode(v)
+
+	if i == 0 {
+		n.next = l.first
+		l.first = n
+	} else if i == l.len {
+		l.last.next = n
+		l.last = n
+	} else {
+		p, _ := l.Get(i - 1)
+
+		n.next = p.next
+		p.next = n
+	}
+
+	l.len++
+
+	return n, nil
+}
+
 // remove removes a given node from the list using the provided parent p
 func (l *LinkedList) remove(c *Node, p *Node) *Node {
 	if c == nil || c.list != l || l.len == 0 {

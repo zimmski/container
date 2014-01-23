@@ -139,6 +139,27 @@ func TestInserts(t *testing.T) {
 
 	Nil(t, l2.InsertAfter(v, n))
 	Nil(t, l2.InsertBefore(v, n))
+
+	// InsertAt
+	l1 := newFilledList(t)
+
+	l1.InsertAt(0, 0)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b"})
+	Equal(t, l1.Len(), vLen+1)
+
+	l1.InsertAt(l1.Len(), 0)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b", 0})
+	Equal(t, l1.Len(), vLen+2)
+
+	l1.InsertAt(2, 0)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, 0, "a", 2, "b", 0})
+	Equal(t, l1.Len(), vLen+3)
+
+	// out of bound
+	_, err := l1.InsertAt(-1, 0)
+	NotNil(t, err)
+	_, err = l1.InsertAt(l1.Len()+1, 0)
+	NotNil(t, err)
 }
 
 func TestRemove(t *testing.T) {
@@ -164,7 +185,7 @@ func TestRemove(t *testing.T) {
 	// out of bound
 	_, err := l1.RemoveAt(-1)
 	NotNil(t, err)
-	_, err = l1.RemoveAt(l1.Len() + 1)
+	_, err = l1.RemoveAt(l1.Len())
 	NotNil(t, err)
 
 	// Remove Middle
