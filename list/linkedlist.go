@@ -88,7 +88,7 @@ func (l *LinkedList) Get(i int) (*Node, error) {
 		j++
 	}
 
-	return nil, nil
+	panic("there is something wrong with the internal structure")
 }
 
 // Set replaces the value in the list with the given value
@@ -109,7 +109,7 @@ func (l *LinkedList) Set(i int, v interface{}) error {
 		j++
 	}
 
-	return nil
+	panic("there is something wrong with the internal structure")
 }
 
 // Copy returns an exact copy of the list
@@ -162,7 +162,7 @@ func (l *LinkedList) findParent(c *Node) *Node {
 		p = i
 	}
 
-	return nil
+	panic("there is something wrong with the internal structure")
 }
 
 // InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
@@ -178,6 +178,7 @@ func (l *LinkedList) InsertAfter(v interface{}, p *Node) *Node {
 		l.first = n
 		l.last = n
 	} else {
+		n.next = p.next
 		p.next = n
 
 		if p == l.last {
@@ -408,4 +409,28 @@ func (l *LinkedList) LastIndexOf(v interface{}) (int, bool) {
 	}
 
 	return j, j != -1
+}
+
+func (l *LinkedList) MoveAfter(n, p *Node) {
+	if n.list != l || p.list != l || n == p {
+		return
+	}
+
+	l.InsertAfter(l.Remove(n).Value, p)
+}
+
+func (l *LinkedList) MoveBefore(n, p *Node) {
+	if n.list != l || p.list != l || n == p {
+		return
+	}
+
+	l.InsertBefore(l.Remove(n).Value, p)
+}
+
+func (l *LinkedList) MoveToBack(n *Node) {
+	l.MoveAfter(n, l.last)
+}
+
+func (l *LinkedList) MoveToFront(n *Node) {
+	l.MoveBefore(n, l.first)
 }

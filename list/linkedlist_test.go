@@ -170,7 +170,7 @@ func TestRemove(t *testing.T) {
 	l1 := newFilledList(t)
 	l2 := newFilledList(t)
 
-	// do not allow removing elements from another list
+	// do not allow removing nodes from another list
 	n1, _ := l1.Get(1)
 	n2, _ := l2.Get(2)
 
@@ -222,7 +222,7 @@ func TestRemove(t *testing.T) {
 	Nil(t, n2.Next())
 	Equal(t, l1.Len(), 1)
 
-	// Remove very last element
+	// Remove very last node
 	n1, err = l1.RemoveAt(0)
 	Nil(t, err)
 	Equal(t, n1.Value, v[2])
@@ -440,4 +440,127 @@ func TestAddLists(t *testing.T) {
 
 	l1.UnshiftList(l3)
 	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+}
+
+func TestMoves(t *testing.T) {
+	l := newFilledList(t)
+
+	n := l.First()
+	p := l.Last()
+	l.MoveAfter(n, p)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, "b", 1})
+	Equal(t, l.Len(), vLen)
+
+	n = l.Last()
+	p = l.First()
+	l.MoveAfter(n, p)
+	Equal(t, l.ToArray(), []interface{}{"a", 1, 2, "b"})
+	Equal(t, l.Len(), vLen)
+
+	n, _ = l.Get(1)
+	p, _ = l.Get(2)
+	l.MoveAfter(n, p)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, 1, "b"})
+	Equal(t, l.Len(), vLen)
+
+	l.Push(0)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, 1, "b", 0})
+	Equal(t, l.Len(), vLen+1)
+
+	l = newFilledList(t)
+
+	n = l.First()
+	p = l.Last()
+	l.MoveBefore(n, p)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, 1, "b"})
+	Equal(t, l.Len(), vLen)
+
+	n = l.Last()
+	p = l.First()
+	l.MoveBefore(n, p)
+	Equal(t, l.ToArray(), []interface{}{"b", "a", 2, 1})
+	Equal(t, l.Len(), vLen)
+
+	n, _ = l.Get(1)
+	p, _ = l.Get(2)
+	l.MoveBefore(n, p)
+	Equal(t, l.ToArray(), []interface{}{"b", "a", 2, 1})
+	Equal(t, l.Len(), vLen)
+
+	l.Push(0)
+	Equal(t, l.ToArray(), []interface{}{"b", "a", 2, 1, 0})
+	Equal(t, l.Len(), vLen+1)
+
+	l = newFilledList(t)
+
+	n = l.First()
+	l.MoveToBack(n)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, "b", 1})
+	Equal(t, l.Len(), vLen)
+
+	n = l.Last()
+	l.MoveToBack(n)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, "b", 1})
+	Equal(t, l.Len(), vLen)
+
+	n, _ = l.Get(2)
+	l.MoveToBack(n)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, 1, "b"})
+	Equal(t, l.Len(), vLen)
+
+	l.Push(0)
+	Equal(t, l.ToArray(), []interface{}{"a", 2, 1, "b", 0})
+	Equal(t, l.Len(), vLen+1)
+
+	l = newFilledList(t)
+
+	n = l.First()
+	l.MoveToFront(n)
+	Equal(t, l.ToArray(), []interface{}{1, "a", 2, "b"})
+	Equal(t, l.Len(), vLen)
+
+	n = l.Last()
+	l.MoveToFront(n)
+	Equal(t, l.ToArray(), []interface{}{"b", 1, "a", 2})
+	Equal(t, l.Len(), vLen)
+
+	n, _ = l.Get(2)
+	l.MoveToFront(n)
+	Equal(t, l.ToArray(), []interface{}{"a", "b", 1, 2})
+	Equal(t, l.Len(), vLen)
+
+	l.Push(0)
+	Equal(t, l.ToArray(), []interface{}{"a", "b", 1, 2, 0})
+	Equal(t, l.Len(), vLen+1)
+
+	// do not allow moving nodes from another list
+	l1 := newFilledList(t)
+	l2 := newFilledList(t)
+
+	n1, _ := l1.Get(1)
+	n2, _ := l2.Get(2)
+
+	l1.MoveAfter(n1, n2)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
+
+	l1.MoveAfter(n2, n1)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
+
+	l1.MoveBefore(n1, n2)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
+
+	l1.MoveBefore(n2, n1)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
+
+	l1.MoveToBack(n2)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
+
+	l1.MoveToFront(n2)
+	Equal(t, l1.ToArray(), v)
+	Equal(t, l2.ToArray(), v)
 }
