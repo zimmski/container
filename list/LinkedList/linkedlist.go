@@ -226,24 +226,15 @@ func (l *LinkedList) InsertAt(i int, v interface{}) (*Node, error) {
 		return nil, errors.New("index bounds out of range")
 	}
 
-	n := l.newNode(v)
-
 	if i == 0 {
-		n.next = l.first
-		l.first = n
+		return l.Unshift(v), nil
 	} else if i == l.len {
-		l.last.next = n
-		l.last = n
-	} else {
-		p, _ := l.Get(i - 1)
-
-		n.next = p.next
-		p.next = n
+		return l.Push(v), nil
 	}
 
-	l.len++
+	p, _ := l.Get(i)
 
-	return n, nil
+	return l.InsertBefore(v, p), nil
 }
 
 // remove removes a given node from the list using the provided parent p
