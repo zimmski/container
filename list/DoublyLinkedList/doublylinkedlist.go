@@ -376,6 +376,7 @@ func (l *DoublyLinkedList) LastIndexOf(v interface{}) (int, bool) {
 	return -1, false
 }
 
+// MoveAfter moves node n after node p
 func (l *DoublyLinkedList) MoveAfter(n, p *Node) {
 	if n.list != l || p.list != l || n == p {
 		return
@@ -384,6 +385,7 @@ func (l *DoublyLinkedList) MoveAfter(n, p *Node) {
 	l.InsertAfter(l.Remove(n).Value, p)
 }
 
+// MoveBefore moves node n before node p
 func (l *DoublyLinkedList) MoveBefore(n, p *Node) {
 	if n.list != l || p.list != l || n == p {
 		return
@@ -392,10 +394,12 @@ func (l *DoublyLinkedList) MoveBefore(n, p *Node) {
 	l.InsertBefore(l.Remove(n).Value, p)
 }
 
+// MoveToBack moves the given node after the last node of the list
 func (l *DoublyLinkedList) MoveToBack(n *Node) {
 	l.MoveAfter(n, l.last)
 }
 
+// MoveToFront moves the given node before the first node of the list
 func (l *DoublyLinkedList) MoveToFront(n *Node) {
 	l.MoveBefore(n, l.first)
 }
