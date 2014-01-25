@@ -29,11 +29,11 @@ type LinkedList struct {
 
 // New returns an initialized list
 func New() *LinkedList {
-	return new(LinkedList).Init()
+	return new(LinkedList).init()
 }
 
-// Init initializes or clears the list
-func (l *LinkedList) Init() *LinkedList {
+// init initializes or clears the list
+func (l *LinkedList) init() *LinkedList {
 	l.Clear()
 
 	return l
