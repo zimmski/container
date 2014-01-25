@@ -382,6 +382,15 @@ func TestFind(t *testing.T) {
 		Equal(t, f, i)
 		Equal(t, ok, true)
 	}
+
+	// not found in nonempty list
+	f, ok = l.IndexOf(100)
+	Equal(t, f, -1)
+	Equal(t, ok, false)
+
+	f, ok = l.LastIndexOf(100)
+	Equal(t, f, -1)
+	Equal(t, ok, false)
 }
 
 func TestGetSet(t *testing.T) {
