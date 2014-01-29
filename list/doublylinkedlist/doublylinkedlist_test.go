@@ -591,3 +591,23 @@ func TestMoves(t *testing.T) {
 	Equal(t, l1.ToArray(), v)
 	Equal(t, l2.ToArray(), v)
 }
+
+func TestFunc(t *testing.T) {
+	l := newFilledList(t)
+
+	Equal(t, v[1], l.GetFunc(func(n *Node) bool {
+		return n.Value == "a"
+	}).Value)
+	Nil(t, l.GetFunc(func(n *Node) bool {
+		return n.Value == "z"
+	}))
+
+	l.SetFunc(func(n *Node) bool {
+		return n.Value == 2
+	}, 3)
+	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b"})
+	l.SetFunc(func(n *Node) bool {
+		return n.Value == "z"
+	}, 4)
+	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b"})
+}

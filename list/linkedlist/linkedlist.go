@@ -91,6 +91,17 @@ func (l *LinkedList) Get(i int) (*Node, error) {
 	panic("there is something wrong with the internal structure")
 }
 
+// GetFunc returns the first node selected by a given function
+func (l *LinkedList) GetFunc(m func(n *Node) bool) *Node {
+	for n := l.First(); n != nil; n = n.Next() {
+		if m(n) {
+			return n
+		}
+	}
+
+	return nil
+}
+
 // Set replaces the value in the list with the given value
 func (l *LinkedList) Set(i int, v interface{}) error {
 	if i < 0 || i >= l.len {
@@ -110,6 +121,17 @@ func (l *LinkedList) Set(i int, v interface{}) error {
 	}
 
 	panic("there is something wrong with the internal structure")
+}
+
+// SetFunc replaces the value of the first node selected by a given function
+func (l *LinkedList) SetFunc(m func(n *Node) bool, v interface{}) {
+	for n := l.First(); n != nil; n = n.Next() {
+		if m(n) {
+			n.Value = v
+
+			return
+		}
+	}
 }
 
 // Copy returns an exact copy of the list
