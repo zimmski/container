@@ -25,3 +25,7 @@ _testmain.go
 
 container.sublime-project
 container.sublime-workspace
+
+# tmp files
+coverage.out
+
