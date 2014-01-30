@@ -8,7 +8,7 @@ import (
 type Node struct {
 	next     *Node             // The node after this node in the list
 	previous *Node             // The node before this node in the list
-	list     *DoublyLinkedList // The list to which this element belongs
+	list     *DoublyLinkedList // The list to which this node belongs
 	Value    interface{}       // The value stored with this node
 }
 

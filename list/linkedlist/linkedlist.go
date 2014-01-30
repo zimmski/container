@@ -7,7 +7,7 @@ import (
 // Node is a node of the list
 type Node struct {
 	next  *Node       // The node after this node in the list
-	list  *LinkedList // The list to which this element belongs
+	list  *LinkedList // The list to which this node belongs
 	Value interface{} // The value stored with this node
 }
 
