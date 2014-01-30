@@ -39,11 +39,8 @@ type DoublyLinkedList struct {
 
 // New returns an initialized list
 func New() *DoublyLinkedList {
-	return new(DoublyLinkedList).init()
-}
+	l := new(DoublyLinkedList)
 
-// init initializes or clears the list
-func (l *DoublyLinkedList) init() *DoublyLinkedList {
 	l.Clear()
 
 	return l
