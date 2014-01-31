@@ -319,67 +319,6 @@ func (l *DoublyLinkedList) ToArray() []interface{} {
 	return a
 }
 
-// InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
-func (l *DoublyLinkedList) InsertAfter(v interface{}, p *Node) *Node {
-	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
-		return nil
-	}
-
-	n := l.newNode(v)
-
-	// insert first node
-	if p == nil {
-		l.first = n
-		l.last = n
-	} else {
-		n.next = p.next
-		if p.next != nil {
-			p.next.previous = n
-		}
-		p.next = n
-		n.previous = p
-
-		if p == l.last {
-			l.last = n
-		}
-	}
-
-	l.len++
-
-	return n
-}
-
-// InsertBefore creates a new node from a value, inserts it before a given node and returns the new one
-func (l *DoublyLinkedList) InsertBefore(v interface{}, p *Node) *Node {
-	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
-		return nil
-	}
-
-	n := l.newNode(v)
-
-	// insert first node
-	if p == nil {
-		l.first = n
-		l.last = n
-	} else {
-		if p == l.first {
-			l.first = n
-		} else {
-			if p.previous != nil {
-				p.previous.next = n
-				n.previous = p.previous
-			}
-		}
-
-		n.next = p
-		p.previous = n
-	}
-
-	l.len++
-
-	return n
-}
-
 // InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
 func (l *DoublyLinkedList) InsertAt(i int, v interface{}) (*Node, error) {
 	if i < 0 || i > l.len {
@@ -395,43 +334,6 @@ func (l *DoublyLinkedList) InsertAt(i int, v interface{}) (*Node, error) {
 	p, _ := l.Get(i)
 
 	return l.InsertBefore(v, p), nil
-}
-
-// Remove removes a given node from the list
-func (l *DoublyLinkedList) Remove(c *Node) *Node {
-	if c == nil || c.list != l || l.len == 0 {
-		return nil
-	}
-
-	if c == l.first {
-		l.first = c.next
-		if c.next != nil {
-			c.next.previous = nil
-		}
-
-		// c is the last node
-		if c == l.last {
-			l.last = nil
-		}
-	} else {
-		if c.previous != nil {
-			c.previous.next = c.next
-
-			if c.next != nil {
-				c.next.previous = c.previous
-			} else if c == l.last {
-				l.last = c.previous
-			}
-		}
-	}
-
-	c.list = nil
-	c.next = nil
-	c.previous = nil
-
-	l.len--
-
-	return c
 }
 
 */
@@ -603,34 +505,3 @@ func (l *UnrolledLinkedList) LastIndexOf(v interface{}) (int, bool) {
 
 	return -1, false
 }
-
-/*
-
-// MoveAfter moves node n after node p
-func (l *DoublyLinkedList) MoveAfter(n, p *Node) {
-	if n.list != l || p.list != l || n == p {
-		return
-	}
-
-	l.InsertAfter(l.Remove(n).Value, p)
-}
-
-// MoveBefore moves node n before node p
-func (l *DoublyLinkedList) MoveBefore(n, p *Node) {
-	if n.list != l || p.list != l || n == p {
-		return
-	}
-
-	l.InsertBefore(l.Remove(n).Value, p)
-}
-
-// MoveToBack moves the given node after the last node of the list
-func (l *DoublyLinkedList) MoveToBack(n *Node) {
-	l.MoveAfter(n, l.last)
-}
-
-// MoveToFront moves the given node before the first node of the list
-func (l *DoublyLinkedList) MoveToFront(n *Node) {
-	l.MoveBefore(n, l.first)
-}
-*/
