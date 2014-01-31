@@ -169,44 +169,32 @@ func TestRemove(t *testing.T) {
 	Nil(t, l.Last())
 }
 
-/*
-
 func TestRemoveOccurrence(t *testing.T) {
-	l := New()
+	l := New(4)
 
 	for i := 0; i < 5; i++ {
 		l.Push(i % 2)
 	}
 
-	n := l.RemoveFirstOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok := l.RemoveFirstOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 4)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.First().Next().Value, 0)
-	Equal(t, l.First().Next().Next().Value, 1)
-	Equal(t, l.Last().Value, 0)
+	Equal(t, l.ToArray(), []interface{}{1, 0, 1, 0})
 
-	n = l.RemoveFirstOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok = l.RemoveFirstOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 3)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.First().Next().Value, 1)
-	Equal(t, l.Last().Value, 0)
+	Equal(t, l.ToArray(), []interface{}{1, 1, 0})
 
-	n = l.RemoveFirstOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok = l.RemoveFirstOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{1, 1})
 
-	n = l.RemoveFirstOccurrence(0)
-	Nil(t, n)
+	ok = l.RemoveFirstOccurrence(0)
+	False(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{1, 1})
 
 	l.Clear()
 
@@ -214,38 +202,26 @@ func TestRemoveOccurrence(t *testing.T) {
 		l.Push(i % 2)
 	}
 
-	n = l.RemoveLastOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok = l.RemoveLastOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 4)
-	Equal(t, l.First().Value, 0)
-	Equal(t, l.First().Next().Value, 1)
-	Equal(t, l.First().Next().Next().Value, 0)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 0, 1})
 
-	n = l.RemoveLastOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok = l.RemoveLastOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 3)
-	Equal(t, l.First().Value, 0)
-	Equal(t, l.First().Next().Value, 1)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 1})
 
-	n = l.RemoveLastOccurrence(0)
-	Equal(t, n.Value, 0)
-	Nil(t, n.Next())
+	ok = l.RemoveLastOccurrence(0)
+	True(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{1, 1})
 
-	n = l.RemoveLastOccurrence(0)
-	Nil(t, n)
+	ok = l.RemoveLastOccurrence(0)
+	False(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.First().Value, 1)
-	Equal(t, l.Last().Value, 1)
+	Equal(t, l.ToArray(), []interface{}{1, 1})
 }
-
-*/
 
 func TestClear(t *testing.T) {
 	l := newFilledList(t)

@@ -117,6 +117,24 @@ func (l *UnrolledLinkedList) Len() int {
 	return l.len
 }
 
+func (l *UnrolledLinkedList) removeElement(c *Node, ic int) interface{} {
+	v := c.values[ic]
+
+	for ; ic < len(c.values)-1; ic++ {
+		c.values[ic] = c.values[ic+1]
+	}
+
+	c.values = c.values[:len(c.values)-1]
+
+	l.len--
+
+	if len(c.values) == 0 {
+		l.removeNode(c)
+	}
+
+	return v
+}
+
 // newNode initializes a new node for the list
 func (l *UnrolledLinkedList) newNode() *Node {
 	return &Node{
@@ -391,50 +409,38 @@ func (l *UnrolledLinkedList) RemoveAt(i int) (interface{}, error) {
 		return nil, errors.New("index bounds out of range")
 	}
 
-	c, ic := l.getNodeAt(i)
-
-	v := c.values[ic]
-
-	for ; ic < len(c.values)-1; ic++ {
-		c.values[ic] = c.values[ic+1]
-	}
-
-	c.values = c.values[:len(c.values)-1]
-
-	l.len--
-
-	if len(c.values) == 0 {
-		l.removeNode(c)
-	}
-
-	return v, nil
+	return l.removeElement(l.getNodeAt(i)), nil
 }
 
-/*
-
 // RemoveFirstOccurrence removes the first node with the given value from the list and returns it or nil
-func (l *DoublyLinkedList) RemoveFirstOccurrence(v interface{}) *Node {
-	for i := l.First(); i != nil; i = i.Next() {
-		if i.Value == v {
-			return l.Remove(i)
+func (l *UnrolledLinkedList) RemoveFirstOccurrence(v interface{}) bool {
+	for n := l.first; n != nil; n = n.Next() {
+		for ic, c := range n.values {
+			if c == v {
+				l.removeElement(n, ic)
+
+				return true
+			}
 		}
 	}
 
-	return nil
+	return false
 }
 
 // RemoveLastOccurrence removes the last node with the given value from the list and returns it or nil
-func (l *DoublyLinkedList) RemoveLastOccurrence(v interface{}) *Node {
-	for i := l.Last(); i != nil; i = i.Previous() {
-		if i.Value == v {
-			return l.Remove(i)
+func (l *UnrolledLinkedList) RemoveLastOccurrence(v interface{}) bool {
+	for n := l.last; n != nil; n = n.Previous() {
+		for ic := len(n.values) - 1; ic > -1; ic-- {
+			if n.values[ic] == v {
+				l.removeElement(n, ic)
+
+				return true
+			}
 		}
 	}
 
-	return nil
+	return false
 }
-
-*/
 
 // Pop removes and returns the last value and true or nil and false
 func (l *UnrolledLinkedList) Pop() (interface{}, bool) {
