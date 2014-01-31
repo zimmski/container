@@ -10,3 +10,4 @@ You can find a list of data structures I want to implement on Wikipedia's excell
 
 * [Doubly linked list](/list/doublylinkedlist)
 * [Linked list](/list/linkedlist)
+* [Unrolled linked list](/list/unrolledlinkedlist)
