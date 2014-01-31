@@ -1,5 +1,9 @@
 package unrolledlinkedlist
 
+import (
+	"errors"
+)
+
 type Node struct {
 	next     *Node               // The node after this node in the list
 	previous *Node               // The node before this node in the list
@@ -91,7 +95,7 @@ func (l *UnrolledLinkedList) Len() int {
 }
 
 // newNode initializes a new node for the list
-func (l *UnrolledLinkedList) newNode(v interface{}) *Node {
+func (l *UnrolledLinkedList) newNode() *Node {
 	return &Node{
 		list:   l,
 		values: make([]interface{}, 0, l.maxElements),
@@ -104,7 +108,7 @@ func (l *UnrolledLinkedList) insertNodeAfter(p *Node) *Node {
 		return nil
 	}
 
-	n := l.newNode(v)
+	n := l.newNode()
 
 	// insert first node
 	if p == nil {
@@ -124,6 +128,71 @@ func (l *UnrolledLinkedList) insertNodeAfter(p *Node) *Node {
 	}
 
 	return n
+}
+
+// InsertNodeBefore creates a new node, inserts it before a given node and returns the new one
+func (l *UnrolledLinkedList) insertNodeBefore(p *Node) *Node {
+	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
+		return nil
+	}
+
+	n := l.newNode()
+
+	// insert first node
+	if p == nil {
+		l.first = n
+		l.last = n
+	} else {
+		if p == l.first {
+			l.first = n
+		} else {
+			if p.previous != nil {
+				p.previous.next = n
+				n.previous = p.previous
+			}
+		}
+
+		n.next = p
+		p.previous = n
+	}
+
+	return n
+}
+
+// removeNode removes a given node from the list
+func (l *UnrolledLinkedList) removeNode(c *Node) *Node {
+	if c == nil || c.list != l {
+		return nil
+	}
+
+	if c == l.first {
+		l.first = c.next
+		if c.next != nil {
+			c.next.previous = nil
+		}
+
+		// c is the last node
+		if c == l.last {
+			l.last = nil
+		}
+	} else {
+		if c.previous != nil {
+			c.previous.next = c.next
+
+			if c.next != nil {
+				c.next.previous = c.previous
+			} else if c == l.last {
+				l.last = c.previous
+			}
+		}
+	}
+
+	c.list = nil
+	c.next = nil
+	c.previous = nil
+	c.values = nil
+
+	return c
 }
 
 // First returns the first node of the list or nil
@@ -357,16 +426,46 @@ func (l *DoublyLinkedList) Remove(c *Node) *Node {
 	return c
 }
 
+*/
+
+func (l *UnrolledLinkedList) getNodeAt(i int) (*Node, int) {
+	for c := l.first; c != nil; c = c.Next() {
+		if i < len(c.values) {
+			return c, i
+		}
+
+		i -= len(c.values)
+	}
+
+	return nil, -1
+}
+
 // RemoveAt removes a node from the list at the given index
-func (l *DoublyLinkedList) RemoveAt(i int) (*Node, error) {
+func (l *UnrolledLinkedList) RemoveAt(i int) (interface{}, error) {
 	if i < 0 || i >= l.len {
 		return nil, errors.New("index bounds out of range")
 	}
 
-	c, _ := l.Get(i)
+	c, ic := l.getNodeAt(i)
 
-	return l.Remove(c), nil
+	v := c.values[ic]
+
+	for ; ic < len(c.values)-1; ic++ {
+		c.values[ic] = c.values[ic+1]
+	}
+
+	c.values = c.values[:len(c.values)-1]
+
+	l.len--
+
+	if len(c.values) == 0 {
+		l.removeNode(c)
+	}
+
+	return v, nil
 }
+
+/*
 
 // RemoveFirstOccurrence removes the first node with the given value from the list and returns it or nil
 func (l *DoublyLinkedList) RemoveFirstOccurrence(v interface{}) *Node {
@@ -390,14 +489,20 @@ func (l *DoublyLinkedList) RemoveLastOccurrence(v interface{}) *Node {
 	return nil
 }
 
-// Pop removes and returns the last node or nil
-func (l *DoublyLinkedList) Pop() *Node {
-	return l.Remove(l.last)
-}
-
 */
 
-// Push creates a new node from a value, inserts it as the last node and returns it
+// Pop removes and returns the last value and true or nil and false
+func (l *UnrolledLinkedList) Pop() (interface{}, bool) {
+	if l.len == 0 {
+		return nil, false
+	}
+
+	v, _ := l.RemoveAt(l.len - 1)
+
+	return v, true
+}
+
+// Push creates a new node from a value and inserts it as the last node
 func (l *UnrolledLinkedList) Push(v interface{}) {
 	if l.last == nil || len(l.last.values) == cap(l.last.values) {
 		l.insertNodeAfter(l.last)
@@ -425,24 +530,44 @@ func (l *UnrolledLinkedList) PushList(l2 *UnrolledLinkedList) {
 	}
 }
 
-/*
+// Shift removes and returns the first value and true or nil and false
+func (l *UnrolledLinkedList) Shift() (interface{}, bool) {
+	if l.len == 0 {
+		return nil, false
+	}
 
-// Shift removes and returns the first node or nil
-func (l *DoublyLinkedList) Shift() *Node {
-	return l.Remove(l.first)
+	v, _ := l.RemoveAt(0)
+
+	return v, true
 }
 
-// Unshift creates a new node from a value, inserts it as the first node and returns it
-func (l *DoublyLinkedList) Unshift(v interface{}) *Node {
-	return l.InsertBefore(v, l.first)
+// Unshift creates a new node from a value and inserts it as the first node
+func (l *UnrolledLinkedList) Unshift(v interface{}) {
+	l.insertNodeBefore(l.first)
+
+	l.first.values = append(l.first.values, v)
+
+	l.len++
 }
 
 // UnshiftList adds the values of a list to the front of the list
-func (l *DoublyLinkedList) UnshiftList(l2 *DoublyLinkedList) {
-	for i := l2.First(); i != nil; i = i.Next() {
-		l.Unshift(i.Value)
+func (l *UnrolledLinkedList) UnshiftList(l2 *UnrolledLinkedList) {
+	iter := l.First()
+
+	if iter == nil {
+		return
+	}
+
+	for {
+		l.Unshift(iter.Value())
+
+		if !iter.Next() {
+			break
+		}
 	}
 }
+
+/*
 
 // Contains returns true if the value exists in the list
 func (l *DoublyLinkedList) Contains(v interface{}) bool {

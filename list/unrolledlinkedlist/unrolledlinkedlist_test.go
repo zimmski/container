@@ -1,6 +1,7 @@
 package unrolledlinkedlist
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
@@ -29,73 +30,85 @@ func newFilledList(t *testing.T) *UnrolledLinkedList {
 	return l
 }
 
+func printList(l *UnrolledLinkedList) {
+	fmt.Printf("Len: %d\n", l.len)
+	for n := l.first; n != nil; n = n.Next() {
+		fmt.Printf("\t%+v\n", n.values)
+	}
+}
+
 func TestBasic(t *testing.T) {
 	l := New(4)
 
 	Equal(t, l.Len(), 0)
 	Nil(t, l.First())
 	Nil(t, l.Last())
-	/*Nil(t, l.Pop())
-	Nil(t, l.Shift())*/
+	n, ok := l.Pop()
+	Nil(t, n)
+	False(t, ok)
+	n, ok = l.Shift()
+	Nil(t, n)
+	False(t, ok)
 
 	fillList(t, l)
 
 	i := 0
-	n := l.First()
+	c := l.First()
 
 	for i < vLen {
-		Equal(t, v[i], n.Value())
+		Equal(t, v[i], c.Value())
 
 		i++
 		if i < vLen {
-			True(t, n.Next())
+			True(t, c.Next())
 		}
 	}
 
-	False(t, n.Next())
-	Nil(t, n.Value())
+	False(t, c.Next())
+	Nil(t, c.Value())
 
-	/*i = vLen - 1
-	n = l.Pop()
+	i = vLen - 1
+	n, ok = l.Pop()
 
 	for i > -1 && n != nil {
-		Equal(t, v[i], n.Value)
-		Nil(t, n.Next())
+		Equal(t, v[i], n)
+		True(t, ok)
 		Equal(t, l.Len(), i)
 
 		i--
-		n = l.Pop()
+		n, ok = l.Pop()
 	}
 
 	Equal(t, i, -1)
 	Nil(t, n)
+	False(t, ok)
 	Equal(t, l.Len(), 0)
 
 	for i, va := range v {
 		l.Unshift(va)
 
 		Equal(t, l.Len(), i+1)
-		Equal(t, l.First().Value, va)
-		Equal(t, l.Last().Value, v[0])
+		Equal(t, l.First().Value(), va)
+		Equal(t, l.Last().Value(), v[0])
 	}
 
 	Equal(t, l.Len(), vLen)
 
 	i = vLen - 1
-	n = l.Shift()
+	n, ok = l.Shift()
 
 	for i > -1 && n != nil {
-		Equal(t, v[i], n.Value)
-		Nil(t, n.Next())
+		Equal(t, v[i], n)
+		True(t, ok)
 		Equal(t, l.Len(), i)
 
 		i--
-		n = l.Shift()
+		n, ok = l.Shift()
 	}
 
 	Equal(t, i, -1)
 	Nil(t, n)
-	Equal(t, l.Len(), 0)*/
+	Equal(t, l.Len(), 0)
 }
 
 /*
