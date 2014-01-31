@@ -112,7 +112,7 @@ func (l *UnrolledLinkedList) Clear() {
 	l.len = 0
 }
 
-// Len returns the curren list length
+// Len returns the current list length
 func (l *UnrolledLinkedList) Len() int {
 	return l.len
 }

@@ -65,7 +65,7 @@ func (l *DoublyLinkedList) Clear() {
 	l.len = 0
 }
 
-// Len returns the curren list length
+// Len returns the current list length
 func (l *DoublyLinkedList) Len() int {
 	return l.len
 }
