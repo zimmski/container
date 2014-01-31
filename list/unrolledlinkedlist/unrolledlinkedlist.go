@@ -71,6 +71,10 @@ type UnrolledLinkedList struct {
 
 // New returns an initialized list
 func New(maxElements int) *UnrolledLinkedList {
+	if maxElements < 1 {
+		panic("maxElements must be at least 1")
+	}
+
 	l := new(UnrolledLinkedList)
 
 	l.Clear()
