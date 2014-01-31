@@ -102,6 +102,18 @@ func (l *UnrolledLinkedList) newNode() *Node {
 	}
 }
 
+func (l *UnrolledLinkedList) getNodeAt(i int) (*Node, int) {
+	for c := l.first; c != nil; c = c.Next() {
+		if i < len(c.values) {
+			return c, i
+		}
+
+		i -= len(c.values)
+	}
+
+	return nil, -1
+}
+
 // insertNodeAfter creates a new node, inserts it after a given node and returns the new one
 func (l *UnrolledLinkedList) insertNodeAfter(p *Node) *Node {
 	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
@@ -303,14 +315,6 @@ func (l *DoublyLinkedList) ToArray() []interface{} {
 	return a
 }
 
-// newNode initializes a new node for the list
-func (l *DoublyLinkedList) newNode(v interface{}) *Node {
-	return &Node{
-		list:  l,
-		Value: v,
-	}
-}
-
 // InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
 func (l *DoublyLinkedList) InsertAfter(v interface{}, p *Node) *Node {
 	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
@@ -427,18 +431,6 @@ func (l *DoublyLinkedList) Remove(c *Node) *Node {
 }
 
 */
-
-func (l *UnrolledLinkedList) getNodeAt(i int) (*Node, int) {
-	for c := l.first; c != nil; c = c.Next() {
-		if i < len(c.values) {
-			return c, i
-		}
-
-		i -= len(c.values)
-	}
-
-	return nil, -1
-}
 
 // RemoveAt removes a node from the list at the given index
 func (l *UnrolledLinkedList) RemoveAt(i int) (interface{}, error) {
@@ -567,44 +559,48 @@ func (l *UnrolledLinkedList) UnshiftList(l2 *UnrolledLinkedList) {
 	}
 }
 
-/*
-
 // Contains returns true if the value exists in the list
-func (l *DoublyLinkedList) Contains(v interface{}) bool {
+func (l *UnrolledLinkedList) Contains(v interface{}) bool {
 	_, ok := l.IndexOf(v)
 
 	return ok
 }
 
 // IndexOf returns the first index of an occurence of the given value and true or -1 and false if the value does not exist
-func (l *DoublyLinkedList) IndexOf(v interface{}) (int, bool) {
+func (l *UnrolledLinkedList) IndexOf(v interface{}) (int, bool) {
 	i := 0
 
-	for n := l.First(); n != nil; n = n.Next() {
-		if n.Value == v {
-			return i, true
-		}
+	for n := l.first; n != nil; n = n.Next() {
+		for _, c := range n.values {
+			if c == v {
+				return i, true
+			}
 
-		i++
+			i++
+		}
 	}
 
 	return -1, false
 }
 
 // LastIndexOf returns the last index of an occurence of the given value and true or -1 and false if the value does not exist
-func (l *DoublyLinkedList) LastIndexOf(v interface{}) (int, bool) {
+func (l *UnrolledLinkedList) LastIndexOf(v interface{}) (int, bool) {
 	i := l.len - 1
 
-	for n := l.Last(); n != nil; n = n.Previous() {
-		if n.Value == v {
-			return i, true
-		}
+	for n := l.last; n != nil; n = n.Previous() {
+		for j := len(n.values) - 1; j > -1; j-- {
+			if n.values[j] == v {
+				return i, true
+			}
 
-		i--
+			i--
+		}
 	}
 
 	return -1, false
 }
+
+/*
 
 // MoveAfter moves node n after node p
 func (l *DoublyLinkedList) MoveAfter(n, p *Node) {

@@ -357,8 +357,10 @@ func TestCopy(t *testing.T) {
 	Nil(t, n2)
 }
 
+*/
+
 func TestFind(t *testing.T) {
-	l := New()
+	l := New(4)
 
 	for _, vi := range v {
 		f, ok := l.IndexOf(vi)
@@ -411,6 +413,8 @@ func TestFind(t *testing.T) {
 	Equal(t, f, -1)
 	Equal(t, ok, false)
 }
+
+/*
 
 func TestGetSet(t *testing.T) {
 	l := New()
