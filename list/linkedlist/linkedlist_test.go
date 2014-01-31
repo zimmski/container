@@ -106,7 +106,7 @@ func TestToArray(t *testing.T) {
 	Equal(t, l.ToArray(), v[1:])
 
 	l.Pop()
-	Equal(t, l.ToArray(), v[1:3])
+	Equal(t, l.ToArray(), v[1:len(v)-1])
 }
 
 func TestInserts(t *testing.T) {
@@ -448,6 +448,15 @@ func TestAddLists(t *testing.T) {
 	Equal(t, l1.ToArray(), []interface{}{3, 4, 5, 6})
 
 	l1.UnshiftList(l3)
+	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+
+	// empty lists
+	l4 := New()
+
+	l1.PushList(l4)
+	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+
+	l1.UnshiftList(l4)
 	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
 }
 
