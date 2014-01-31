@@ -111,10 +111,8 @@ func TestBasic(t *testing.T) {
 	Equal(t, l.Len(), 0)
 }
 
-/*
-
 func TestToArray(t *testing.T) {
-	l := New()
+	l := New(4)
 	Equal(t, l.ToArray(), []interface{}{})
 
 	fillList(t, l)
@@ -124,58 +122,54 @@ func TestToArray(t *testing.T) {
 	Equal(t, l.ToArray(), v[1:])
 
 	l.Pop()
-	Equal(t, l.ToArray(), v[1:3])
+	Equal(t, l.ToArray(), v[1:len(v)-1])
 }
 
 func TestRemove(t *testing.T) {
-	l1 = newFilledList(t)
+	l := newFilledList(t)
 
 	// out of bound
-	_, err := l1.RemoveAt(-1)
+	_, err := l.RemoveAt(-1)
 	NotNil(t, err)
-	_, err = l1.RemoveAt(l1.Len())
+	_, err = l.RemoveAt(l.Len())
 	NotNil(t, err)
 
 	// Remove Middle
-	n1, err = l1.RemoveAt(1)
+	n1, err := l.RemoveAt(1)
 	Nil(t, err)
-	Equal(t, n1.Value, v[1])
-	Nil(t, n1.Next())
-	Nil(t, n1.Previous())
-	n2, _ = l1.Get(1)
-	Equal(t, n2.Value, v[2])
-	Equal(t, n2.Next().Value, v[3])
-	Equal(t, l1.Len(), 3)
+	Equal(t, n1, v[1])
+	n2, _ := l.Get(1)
+	Equal(t, n2, v[2])
+	Equal(t, l.Len(), len(v)-1)
 
 	// Remove First
-	n1, err = l1.RemoveAt(0)
+	n1, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1.Value, v[0])
-	Nil(t, n1.Next())
-	n2 = l1.First()
-	Equal(t, n2.Value, v[2])
-	Equal(t, n2.Next().Value, v[3])
-	Equal(t, l1.Len(), 2)
+	Equal(t, n1, v[0])
+	n3 := l.First()
+	Equal(t, n3.Value(), v[2])
+	Equal(t, l.Len(), len(v)-2)
 
 	// Remove Last
-	n1, err = l1.RemoveAt(1)
+	n1, err = l.RemoveAt(l.Len() - 1)
 	Nil(t, err)
-	Equal(t, n1.Value, v[3])
-	Nil(t, n1.Next())
-	n2 = l1.Last()
-	Equal(t, n2.Value, v[2])
-	Nil(t, n2.Next())
-	Equal(t, l1.Len(), 1)
+	Equal(t, n1, v[len(v)-1])
+	n3 = l.Last()
+	Equal(t, n3.Value(), v[len(v)-2])
+	Equal(t, l.Len(), len(v)-3)
 
 	// Remove very last node
-	n1, err = l1.RemoveAt(0)
+	l.Clear()
+	l.Push(23)
+
+	n1, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1.Value, v[2])
-	Nil(t, n1.Next())
-	Equal(t, l1.Len(), 0)
-	Nil(t, l1.First())
-	Nil(t, l1.Last())
+	Equal(t, n1, 23)
+	Nil(t, l.First())
+	Nil(t, l.Last())
 }
+
+/*
 
 func TestRemoveOccurrence(t *testing.T) {
 	l := New()
@@ -251,6 +245,8 @@ func TestRemoveOccurrence(t *testing.T) {
 	Equal(t, l.Last().Value, 1)
 }
 
+*/
+
 func TestClear(t *testing.T) {
 	l := newFilledList(t)
 
@@ -259,8 +255,12 @@ func TestClear(t *testing.T) {
 	Equal(t, l.Len(), 0)
 	Nil(t, l.First())
 	Nil(t, l.Last())
-	Nil(t, l.Pop())
+	n, ok := l.Pop()
+	Nil(t, n)
+	False(t, ok)
 }
+
+/*
 
 func TestCopy(t *testing.T) {
 	l1 := newFilledList(t)
@@ -340,10 +340,8 @@ func TestFind(t *testing.T) {
 	Equal(t, ok, false)
 }
 
-/*
-
 func TestGetSet(t *testing.T) {
-	l := New()
+	l := New(4)
 
 	for i := range v {
 		n, err := l.Get(i)
@@ -366,7 +364,7 @@ func TestGetSet(t *testing.T) {
 	for i, vi := range v {
 		n, err := l.Get(i)
 
-		Equal(t, n.Value, vi)
+		Equal(t, n, vi)
 		Nil(t, err)
 
 		err = l.Set(i, i+10)
@@ -375,21 +373,21 @@ func TestGetSet(t *testing.T) {
 
 		n, err = l.Get(i)
 
-		Equal(t, n.Value, i+10)
+		Equal(t, n, i+10)
 		Nil(t, err)
 	}
 }
 
 func TestAddLists(t *testing.T) {
-	l1 := New()
+	l1 := New(4)
 	l1.Push(3)
 	l1.Push(4)
 
-	l2 := New()
+	l2 := New(4)
 	l2.Push(5)
 	l2.Push(6)
 
-	l3 := New()
+	l3 := New(4)
 	l3.Push(2)
 	l3.Push(1)
 
@@ -398,26 +396,33 @@ func TestAddLists(t *testing.T) {
 
 	l1.UnshiftList(l3)
 	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+
+	// empty lists
+	l4 := New(4)
+
+	l1.PushList(l4)
+	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+
+	l1.UnshiftList(l4)
+	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
 }
 
 func TestFunc(t *testing.T) {
 	l := newFilledList(t)
 
-	Equal(t, v[1], l.GetFunc(func(n *Node) bool {
-		return n.Value == "a"
-	}).Value)
-	Nil(t, l.GetFunc(func(n *Node) bool {
-		return n.Value == "z"
+	Equal(t, v[1], l.GetFunc(func(v interface{}) bool {
+		return v == "a"
+	}))
+	Nil(t, l.GetFunc(func(v interface{}) bool {
+		return v == "z"
 	}))
 
-	l.SetFunc(func(n *Node) bool {
-		return n.Value == 2
+	l.SetFunc(func(v interface{}) bool {
+		return v == 2
 	}, 3)
-	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b"})
-	l.SetFunc(func(n *Node) bool {
-		return n.Value == "z"
+	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+	l.SetFunc(func(v interface{}) bool {
+		return v == "z"
 	}, 4)
-	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b"})
+	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
 }
-
-*/

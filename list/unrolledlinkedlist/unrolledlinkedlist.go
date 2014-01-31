@@ -54,6 +54,14 @@ func (iter *Iterator) Next() bool {
 	return iter.current != nil
 }
 
+func (iter *Iterator) Set(v interface{}) {
+	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
+		return
+	}
+
+	iter.current.values[iter.i] = v
+}
+
 func (iter *Iterator) Value() interface{} {
 	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
 		return nil
@@ -86,7 +94,18 @@ func New(maxElements int) *UnrolledLinkedList {
 
 // Clear removes all nodes from the list
 func (l *UnrolledLinkedList) Clear() {
-	// TODO remove old values if they are there
+	i := l.first
+
+	for i != nil {
+		j := i.Next()
+
+		i.list = nil
+		i.next = nil
+		i.previous = nil
+		i.values = nil
+
+		i = j
+	}
 
 	l.first = nil
 	l.last = nil
@@ -229,32 +248,36 @@ func (l *UnrolledLinkedList) Last() *Iterator {
 	return newIterator(l.last, len(l.last.values)-1)
 }
 
-/*
-
 // Get returns the node with the given index or nil
-func (l *DoublyLinkedList) Get(i int) (*Node, error) {
+func (l *UnrolledLinkedList) Get(i int) (interface{}, error) {
 	if i < 0 || i >= l.len {
 		return nil, errors.New("index bounds out of range")
 	}
 
-	j := 0
-
-	for n := l.First(); n != nil; n = n.Next() {
-		if i == j {
-			return n, nil
+	for c := l.first; c != nil; c = c.Next() {
+		if i < len(c.values) {
+			return c.values[i], nil
 		}
 
-		j++
+		i -= len(c.values)
 	}
 
 	panic("there is something wrong with the internal structure")
 }
 
 // GetFunc returns the first node selected by a given function
-func (l *DoublyLinkedList) GetFunc(m func(n *Node) bool) *Node {
-	for n := l.First(); n != nil; n = n.Next() {
-		if m(n) {
-			return n
+func (l *UnrolledLinkedList) GetFunc(m func(v interface{}) bool) interface{} {
+	iter := l.First()
+
+	if iter != nil {
+		for {
+			if m(iter.Value()) {
+				return iter.Value()
+			}
+
+			if !iter.Next() {
+				break
+			}
 		}
 	}
 
@@ -262,36 +285,44 @@ func (l *DoublyLinkedList) GetFunc(m func(n *Node) bool) *Node {
 }
 
 // Set replaces the value in the list with the given value
-func (l *DoublyLinkedList) Set(i int, v interface{}) error {
+func (l *UnrolledLinkedList) Set(i int, v interface{}) error {
 	if i < 0 || i >= l.len {
 		return errors.New("index bounds out of range")
 	}
 
-	j := 0
-
-	for n := l.First(); n != nil; n = n.Next() {
-		if i == j {
-			n.Value = v
+	for c := l.first; c != nil; c = c.Next() {
+		if i < len(c.values) {
+			c.values[i] = v
 
 			return nil
 		}
 
-		j++
+		i -= len(c.values)
 	}
 
 	panic("there is something wrong with the internal structure")
 }
 
 // SetFunc replaces the value of the first node selected by a given function
-func (l *DoublyLinkedList) SetFunc(m func(n *Node) bool, v interface{}) {
-	for n := l.First(); n != nil; n = n.Next() {
-		if m(n) {
-			n.Value = v
+func (l *UnrolledLinkedList) SetFunc(m func(v interface{}) bool, v interface{}) {
+	iter := l.First()
 
-			return
+	if iter != nil {
+		for {
+			if m(iter.Value()) {
+				iter.Set(v)
+
+				return
+			}
+
+			if !iter.Next() {
+				break
+			}
 		}
 	}
 }
+
+/*
 
 // Copy returns an exact copy of the list
 func (l *DoublyLinkedList) Copy() *DoublyLinkedList {
@@ -304,20 +335,32 @@ func (l *DoublyLinkedList) Copy() *DoublyLinkedList {
 	return n
 }
 
+*/
+
 // ToArray returns a copy of the list as slice
-func (l *DoublyLinkedList) ToArray() []interface{} {
+func (l *UnrolledLinkedList) ToArray() []interface{} {
 	a := make([]interface{}, l.len)
 
 	j := 0
 
-	for i := l.First(); i != nil; i = i.Next() {
-		a[j] = i.Value
+	iter := l.First()
 
-		j++
+	if iter != nil {
+		for {
+			a[j] = iter.Value()
+
+			if !iter.Next() {
+				break
+			}
+
+			j++
+		}
 	}
 
 	return a
 }
+
+/*
 
 // InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
 func (l *DoublyLinkedList) InsertAt(i int, v interface{}) (*Node, error) {
@@ -413,7 +456,7 @@ func (l *UnrolledLinkedList) Push(v interface{}) {
 
 // PushList adds the values of a list to the end of the list
 func (l *UnrolledLinkedList) PushList(l2 *UnrolledLinkedList) {
-	iter := l.First()
+	iter := l2.First()
 
 	if iter == nil {
 		return
@@ -450,7 +493,7 @@ func (l *UnrolledLinkedList) Unshift(v interface{}) {
 
 // UnshiftList adds the values of a list to the front of the list
 func (l *UnrolledLinkedList) UnshiftList(l2 *UnrolledLinkedList) {
-	iter := l.First()
+	iter := l2.First()
 
 	if iter == nil {
 		return
