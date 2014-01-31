@@ -260,8 +260,6 @@ func TestClear(t *testing.T) {
 	False(t, ok)
 }
 
-/*
-
 func TestCopy(t *testing.T) {
 	l1 := newFilledList(t)
 
@@ -272,18 +270,24 @@ func TestCopy(t *testing.T) {
 	n1 := l1.First()
 	n2 := l2.First()
 
-	for n1 != nil && n2 != nil {
-		Equal(t, n1.Value, n2.Value)
+	if n1 != nil && n2 != nil {
+		for {
+			Equal(t, n1.Value(), n2.Value())
 
-		n1 = n1.Next()
-		n2 = n2.Next()
+			ok1 := n1.Next()
+			ok2 := n2.Next()
+
+			Equal(t, ok1, ok2)
+
+			if !ok1 {
+				break
+			}
+		}
 	}
 
-	Nil(t, n1)
-	Nil(t, n2)
+	Nil(t, n1.Value())
+	Nil(t, n2.Value())
 }
-
-*/
 
 func TestFind(t *testing.T) {
 	l := New(4)

@@ -322,20 +322,24 @@ func (l *UnrolledLinkedList) SetFunc(m func(v interface{}) bool, v interface{}) 
 	}
 }
 
-/*
-
 // Copy returns an exact copy of the list
-func (l *DoublyLinkedList) Copy() *DoublyLinkedList {
-	n := New()
+func (l *UnrolledLinkedList) Copy() *UnrolledLinkedList {
+	n := New(l.maxElements)
 
-	for i := l.First(); i != nil; i = i.Next() {
-		n.Push(i.Value)
+	iter := l.First()
+
+	if iter != nil {
+		for {
+			n.Push(iter.Value())
+
+			if !iter.Next() {
+				break
+			}
+		}
 	}
 
 	return n
 }
-
-*/
 
 // ToArray returns a copy of the list as slice
 func (l *UnrolledLinkedList) ToArray() []interface{} {
