@@ -193,6 +193,23 @@ func TestRemove(t *testing.T) {
 	Equal(t, n1, 23)
 	Nil(t, l.First())
 	Nil(t, l.Last())
+
+	// remove structure
+	l = New(7)
+
+	for i := 0; i < 10; i++ {
+		l.Push(i % 10)
+	}
+	Equal(t, l.ToArray(), []interface{}{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+
+	l.RemoveAt(2)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 3, 4, 5, 6, 7, 8, 9})
+	l.RemoveAt(2)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 4, 5, 6, 7, 8, 9})
+	l.RemoveAt(2)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 5, 6, 7, 8, 9})
+	l.RemoveAt(2)
+	Equal(t, l.ToArray(), []interface{}{0, 1, 6, 7, 8, 9})
 }
 
 func TestRemoveOccurrence(t *testing.T) {

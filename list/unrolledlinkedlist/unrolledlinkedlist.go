@@ -161,6 +161,23 @@ func (l *UnrolledLinkedList) removeElement(c *Node, ic int) interface{} {
 
 	if len(c.values) == 0 {
 		l.removeNode(c)
+	} else if n := c.Next(); l.maxElements > 3 && n != nil && len(c.values) < l.maxElements/2 {
+		if len(n.values)-2 < l.maxElements/2 { // copy the next node into the current node
+			for _, v := range n.values {
+				c.values = append(c.values, v)
+			}
+
+			l.removeNode(n)
+		} else { // copy 2 elements of the next node to the current node
+			c.values = append(c.values, n.values[0], n.values[1])
+
+			for ic = 2; ic < len(n.values); ic++ {
+				n.values[ic-2] = n.values[ic]
+			}
+
+			n.values = n.values[:len(n.values)-2]
+		}
+
 	}
 
 	return v
