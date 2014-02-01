@@ -123,11 +123,20 @@ func (l *UnrolledLinkedList) insertElement(v interface{}, c *Node, ic int) {
 
 		n.values = append(n.values, v)
 	} else if len(c.values) == ic { // end of node
-		if len(l.last.values) == cap(l.last.values) {
-			l.insertNodeAfter(c)
+		n := c
+
+		if len(n.values) == cap(n.values) {
+			n = l.insertNodeAfter(c)
+
+			// move half of the old node if possible
+			if l.maxElements > 3 {
+				ic = (len(c.values) + 1) / 2
+				n.values = append(n.values, c.values[ic:len(c.values)]...)
+				c.values = c.values[:ic]
+			}
 		}
 
-		l.last.values = append(l.last.values, v)
+		n.values = append(n.values, v)
 	} else { // "middle" of the node
 		n := l.insertNodeAfter(c)
 
