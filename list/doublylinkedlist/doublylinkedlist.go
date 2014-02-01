@@ -30,7 +30,7 @@ func (n *Node) Previous() *Node {
 	return nil
 }
 
-// DoublyLinkedList is a single linked list
+// DoublyLinkedList is a doubly linked list
 type DoublyLinkedList struct {
 	first *Node // The first node of the list
 	last  *Node // The last node of the list
