@@ -117,6 +117,28 @@ func (l *UnrolledLinkedList) Len() int {
 	return l.len
 }
 
+func (l *UnrolledLinkedList) insertElement(v interface{}, c *Node, ic int) {
+	if c == nil || ic == 0 || len(c.values) == 0 { // begin of node
+		n := l.insertNodeBefore(l.first)
+
+		n.values = append(n.values, v)
+	} else if len(c.values) == ic { // end of node
+		if len(l.last.values) == cap(l.last.values) {
+			l.insertNodeAfter(c)
+		}
+
+		l.last.values = append(l.last.values, v)
+	} else { // "middle" of the node
+		n := l.insertNodeAfter(c)
+
+		n.values = append(n.values, c.values[ic:len(c.values)]...)
+		c.values[ic] = v
+		c.values = c.values[:ic+1]
+	}
+
+	l.len++
+}
+
 func (l *UnrolledLinkedList) removeElement(c *Node, ic int) interface{} {
 	v := c.values[ic]
 
@@ -382,26 +404,22 @@ func (l *UnrolledLinkedList) ToArray() []interface{} {
 	return a
 }
 
-/*
-
 // InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
-func (l *DoublyLinkedList) InsertAt(i int, v interface{}) (*Node, error) {
+func (l *UnrolledLinkedList) InsertAt(i int, v interface{}) error {
 	if i < 0 || i > l.len {
-		return nil, errors.New("index bounds out of range")
+		return errors.New("index bounds out of range")
 	}
 
-	if i == 0 {
-		return l.Unshift(v), nil
-	} else if i == l.len {
-		return l.Push(v), nil
+	if i != l.len {
+		c, ic := l.getNodeAt(i)
+
+		l.insertElement(v, c, ic)
+	} else { // getNodeAt returns nil for lastIndex + 1
+		l.Push(v)
 	}
 
-	p, _ := l.Get(i)
-
-	return l.InsertBefore(v, p), nil
+	return nil
 }
-
-*/
 
 // RemoveAt removes a node from the list at the given index
 func (l *UnrolledLinkedList) RemoveAt(i int) (interface{}, error) {
@@ -455,13 +473,11 @@ func (l *UnrolledLinkedList) Pop() (interface{}, bool) {
 
 // Push creates a new node from a value and inserts it as the last node
 func (l *UnrolledLinkedList) Push(v interface{}) {
-	if l.last == nil || len(l.last.values) == cap(l.last.values) {
-		l.insertNodeAfter(l.last)
+	if l.last == nil {
+		l.insertElement(v, nil, 0)
+	} else {
+		l.insertElement(v, l.last, len(l.last.values))
 	}
-
-	l.last.values = append(l.last.values, v)
-
-	l.len++
 }
 
 // PushList adds the values of a list to the end of the list
@@ -494,11 +510,7 @@ func (l *UnrolledLinkedList) Shift() (interface{}, bool) {
 
 // Unshift creates a new node from a value and inserts it as the first node
 func (l *UnrolledLinkedList) Unshift(v interface{}) {
-	l.insertNodeBefore(l.first)
-
-	l.first.values = append(l.first.values, v)
-
-	l.len++
+	l.insertElement(v, l.first, 0)
 }
 
 // UnshiftList adds the values of a list to the front of the list

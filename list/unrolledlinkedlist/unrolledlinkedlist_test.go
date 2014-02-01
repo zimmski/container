@@ -125,6 +125,32 @@ func TestToArray(t *testing.T) {
 	Equal(t, l.ToArray(), v[1:len(v)-1])
 }
 
+func TestInserts(t *testing.T) {
+	// InsertAt
+	l1 := newFilledList(t)
+
+	err := l1.InsertAt(0, 0)
+	Nil(t, err)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d"})
+	Equal(t, l1.Len(), vLen+1)
+
+	err = l1.InsertAt(l1.Len(), 0)
+	Nil(t, err)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d", 0})
+	Equal(t, l1.Len(), vLen+2)
+
+	err = l1.InsertAt(2, 0)
+	Nil(t, err)
+	Equal(t, l1.ToArray(), []interface{}{0, 1, 0, "a", 2, "b", 3, "c", 4, "d", 0})
+	Equal(t, l1.Len(), vLen+3)
+
+	// out of bound
+	err = l1.InsertAt(-1, 0)
+	NotNil(t, err)
+	err = l1.InsertAt(l1.Len()+1, 0)
+	NotNil(t, err)
+}
+
 func TestRemove(t *testing.T) {
 	l := newFilledList(t)
 
