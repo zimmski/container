@@ -2,34 +2,69 @@ package linkedlist
 
 import (
 	"errors"
+
+	"github.com/zimmski/container/list"
 )
 
-// Node is a node of the list
-type Node struct {
-	next  *Node       // The node after this node in the list
-	list  *LinkedList // The list to which this node belongs
-	Value interface{} // The value stored with this node
+// node is a node of the list
+type node struct {
+	next  *node       // The node after this node in the list
+	value interface{} // The value stored with this node
 }
 
-// Next returns the next node or nil
-func (n *Node) Next() *Node {
-	if i := n.next; n.list != nil {
-		return i
+// element holds one value coming from an linked list
+type element struct {
+	value interface{}
+}
+
+// Value returns the value hold in the element
+func (e *element) Value() interface{} {
+	return e.value
+}
+
+// iterator is an iterator for an linked list
+type iterator struct {
+	current *node // The current node in traversal
+	list    *List // The list to which this iterator belongs
+}
+
+// Next moves to the next node in the linked list and returns true or false if there is no next node
+func (iter *iterator) Next() bool {
+	if iter.current != nil {
+		iter.current = iter.current.next
 	}
 
-	return nil
+	return iter.current != nil
 }
 
-// LinkedList is a single linked list
-type LinkedList struct {
-	first *Node // The first node of the list
-	last  *Node // The last node of the list
+// Set sets a value at the current position of the iterator
+func (iter *iterator) Set(v interface{}) {
+	if iter.current == nil {
+		return
+	}
+
+	iter.current.value = v
+}
+
+// Value returns the value at the current position of the iterator
+func (iter *iterator) Value() interface{} {
+	if iter.current == nil {
+		return nil
+	}
+
+	return iter.current.value
+}
+
+// List is a single linked list
+type List struct {
+	first *node // The first node of the list
+	last  *node // The last node of the list
 	len   int   // The current list length
 }
 
 // New returns an initialized list
-func New() *LinkedList {
-	l := new(LinkedList)
+func New() *List {
+	l := new(List)
 
 	l.Clear()
 
@@ -37,13 +72,12 @@ func New() *LinkedList {
 }
 
 // Clear removes all nodes from the list
-func (l *LinkedList) Clear() {
+func (l *List) Clear() {
 	i := l.first
 
 	for i != nil {
-		j := i.Next()
+		j := i.next
 
-		i.list = nil
 		i.next = nil
 
 		i = j
@@ -55,29 +89,45 @@ func (l *LinkedList) Clear() {
 }
 
 // Len returns the current list length
-func (l *LinkedList) Len() int {
+func (l *List) Len() int {
 	return l.len
 }
 
-// First returns the first node of the list or nil
-func (l *LinkedList) First() *Node {
-	return l.first
+// newNode initializes a new node for the list
+func (l *List) newNode(v interface{}) *node {
+	return &node{
+		value: v,
+	}
 }
 
-// Last returns the last node of the list or nil
-func (l *LinkedList) Last() *Node {
-	return l.last
+// findParentNode returns the parent to a given node or nil
+func (l *List) findParentNode(c *node) *node {
+	if c == nil {
+		return nil
+	}
+
+	var p *node
+
+	for i := l.first; i != nil; i = i.next {
+		if i == c {
+			return p
+		}
+
+		p = i
+	}
+
+	panic("there is something wrong with the internal structure")
 }
 
-// Get returns the node with the given index or nil
-func (l *LinkedList) Get(i int) (*Node, error) {
+// getNode returns the node with the given index or nil
+func (l *List) getNode(i int) (*node, error) {
 	if i < 0 || i >= l.len {
 		return nil, errors.New("index bounds out of range")
 	}
 
 	j := 0
 
-	for n := l.First(); n != nil; n = n.Next() {
+	for n := l.first; n != nil; n = n.next {
 		if i == j {
 			return n, nil
 		}
@@ -88,11 +138,85 @@ func (l *LinkedList) Get(i int) (*Node, error) {
 	panic("there is something wrong with the internal structure")
 }
 
+// remove removes a given node from the list using the provided parent p
+func (l *List) removeNode(c *node, p *node) list.Element {
+	if c == nil || l.len == 0 {
+		return nil
+	}
+
+	if c == l.first {
+		l.first = c.next
+
+		// c is the last node
+		if c == l.last {
+			l.last = nil
+		}
+	} else {
+		if p == nil {
+			p = l.findParentNode(c)
+		}
+
+		p.next = c.next
+
+		if c == l.last {
+			l.last = p
+		}
+	}
+
+	c.next = nil
+
+	l.len--
+
+	return &element{
+		value: c.value,
+	}
+}
+
+func (l *List) newiterator(current *node) list.Iterator {
+	return &iterator{
+		current: current,
+		list:    l,
+	}
+}
+
+// First returns the first node of the list or nil
+func (l *List) First() list.Iterator {
+	if l.len == 0 {
+		return nil
+	}
+
+	return l.newiterator(l.first)
+}
+
+// Last returns the last node of the list or nil
+func (l *List) Last() list.Iterator {
+	if l.len == 0 {
+		return nil
+	}
+
+	return l.newiterator(l.last)
+}
+
+// Get returns the node with the given index or nil
+func (l *List) Get(i int) (list.Element, error) {
+	n, err := l.getNode(i)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &element{
+		value: n.value,
+	}, nil
+}
+
 // GetFunc returns the first node selected by a given function
-func (l *LinkedList) GetFunc(m func(n *Node) bool) *Node {
-	for n := l.First(); n != nil; n = n.Next() {
-		if m(n) {
-			return n
+func (l *List) GetFunc(m func(v interface{}) bool) list.Element {
+	for n := l.first; n != nil; n = n.next {
+		if m(n.value) {
+			return &element{
+				value: n.value,
+			}
 		}
 	}
 
@@ -100,16 +224,16 @@ func (l *LinkedList) GetFunc(m func(n *Node) bool) *Node {
 }
 
 // Set replaces the value in the list with the given value
-func (l *LinkedList) Set(i int, v interface{}) error {
+func (l *List) Set(i int, v interface{}) error {
 	if i < 0 || i >= l.len {
 		return errors.New("index bounds out of range")
 	}
 
 	j := 0
 
-	for n := l.First(); n != nil; n = n.Next() {
+	for n := l.first; n != nil; n = n.next {
 		if i == j {
-			n.Value = v
+			n.value = v
 
 			return nil
 		}
@@ -121,10 +245,10 @@ func (l *LinkedList) Set(i int, v interface{}) error {
 }
 
 // SetFunc replaces the value of the first node selected by a given function
-func (l *LinkedList) SetFunc(m func(n *Node) bool, v interface{}) {
-	for n := l.First(); n != nil; n = n.Next() {
-		if m(n) {
-			n.Value = v
+func (l *List) SetFunc(m func(v interface{}) bool, v interface{}) {
+	for n := l.first; n != nil; n = n.next {
+		if m(n.value) {
+			n.value = v
 
 			return
 		}
@@ -132,24 +256,24 @@ func (l *LinkedList) SetFunc(m func(n *Node) bool, v interface{}) {
 }
 
 // Copy returns an exact copy of the list
-func (l *LinkedList) Copy() *LinkedList {
+func (l *List) Copy() list.List {
 	n := New()
 
-	for i := l.First(); i != nil; i = i.Next() {
-		n.Push(i.Value)
+	for i := l.first; i != nil; i = i.next {
+		n.Push(i.value)
 	}
 
 	return n
 }
 
 // ToArray returns a copy of the list as slice
-func (l *LinkedList) ToArray() []interface{} {
+func (l *List) ToArray() []interface{} {
 	a := make([]interface{}, l.len)
 
 	j := 0
 
-	for i := l.First(); i != nil; i = i.Next() {
-		a[j] = i.Value
+	for i := l.first; i != nil; i = i.next {
+		a[j] = i.value
 
 		j++
 	}
@@ -157,36 +281,9 @@ func (l *LinkedList) ToArray() []interface{} {
 	return a
 }
 
-// newNode initializes a new node for the list
-func (l *LinkedList) newNode(v interface{}) *Node {
-	return &Node{
-		list:  l,
-		Value: v,
-	}
-}
-
-// findParent returns the parent to a given node or nil
-func (l *LinkedList) findParent(c *Node) *Node {
-	if c == nil || c.list != l {
-		return nil
-	}
-
-	var p *Node
-
-	for i := l.First(); i != nil; i = i.Next() {
-		if i == c {
-			return p
-		}
-
-		p = i
-	}
-
-	panic("there is something wrong with the internal structure")
-}
-
 // InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
-func (l *LinkedList) InsertAfter(v interface{}, p *Node) *Node {
-	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
+func (l *List) InsertAfter(v interface{}, p *node) *node {
+	if p == nil && l.len != 0 {
 		return nil
 	}
 
@@ -211,8 +308,8 @@ func (l *LinkedList) InsertAfter(v interface{}, p *Node) *Node {
 }
 
 // InsertBefore creates a new node from a value, inserts it before a given node and returns the new one
-func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
-	if (p == nil && l.len != 0) || (p != nil && p.list != l) {
+func (l *List) InsertBefore(v interface{}, p *node) *node {
+	if p == nil && l.len != 0 {
 		return nil
 	}
 
@@ -226,7 +323,7 @@ func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
 		if p == l.first {
 			l.first = n
 		} else {
-			pp := l.findParent(p)
+			pp := l.findParentNode(p)
 
 			pp.next = n
 		}
@@ -240,101 +337,68 @@ func (l *LinkedList) InsertBefore(v interface{}, p *Node) *Node {
 }
 
 // InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
-func (l *LinkedList) InsertAt(i int, v interface{}) (*Node, error) {
+func (l *List) InsertAt(i int, v interface{}) error {
 	if i < 0 || i > l.len {
-		return nil, errors.New("index bounds out of range")
+		return errors.New("index bounds out of range")
 	}
 
 	if i == 0 {
-		return l.Unshift(v), nil
+		l.Unshift(v)
 	} else if i == l.len {
-		return l.Push(v), nil
-	}
-
-	p, _ := l.Get(i)
-
-	return l.InsertBefore(v, p), nil
-}
-
-// remove removes a given node from the list using the provided parent p
-func (l *LinkedList) remove(c *Node, p *Node) *Node {
-	if c == nil || c.list != l || l.len == 0 {
-		return nil
-	}
-
-	if c == l.first {
-		l.first = c.next
-
-		// c is the last node
-		if c == l.last {
-			l.last = nil
-		}
+		l.Push(v)
 	} else {
-		if p == nil {
-			p = l.findParent(c)
-		}
+		p, _ := l.getNode(i)
 
-		p.next = c.next
-
-		if c == l.last {
-			l.last = p
-		}
+		l.InsertBefore(v, p)
 	}
 
-	c.list = nil
-	c.next = nil
-
-	l.len--
-
-	return c
+	return nil
 }
 
+/* TODO implement with Element
 // Remove removes a given node from the list
-func (l *LinkedList) Remove(c *Node) *Node {
-	return l.remove(c, nil)
+func (l *List) Remove(c *node) list.Element {
+	return l.removeNode(c, nil)
 }
+*/
 
 // RemoveAt removes a node from the list at the given index
-func (l *LinkedList) RemoveAt(i int) (*Node, error) {
+func (l *List) RemoveAt(i int) (list.Element, error) {
 	switch {
 	case i < 0 || i >= l.len:
 		return nil, errors.New("index bounds out of range")
 	case i == 0:
-		return l.remove(l.first, nil), nil
+		return l.removeNode(l.first, nil), nil
 	default:
-		p, _ := l.Get(i - 1)
+		p, _ := l.getNode(i - 1)
 
-		return l.remove(p.next, p), nil
+		return l.removeNode(p.next, p), nil
 	}
 }
 
 // RemoveFirstOccurrence removes the first node with the given value from the list and returns it or nil
-func (l *LinkedList) RemoveFirstOccurrence(v interface{}) *Node {
-	var c, p *Node
+func (l *List) RemoveFirstOccurrence(v interface{}) bool {
+	var p *node
 
-	for i := l.First(); i != nil; i = i.Next() {
-		if i.Value == v {
-			c = i
+	for i := l.first; i != nil; i = i.next {
+		if i.value == v {
+			l.removeNode(i, p)
 
-			break
+			return true
 		}
 
 		p = i
 	}
 
-	if c != nil {
-		l.remove(c, p)
-	}
-
-	return c
+	return false
 }
 
 // RemoveLastOccurrence removes the last node with the given value from the list and returns it or nil
-func (l *LinkedList) RemoveLastOccurrence(v interface{}) *Node {
-	var c, p, pp *Node
+func (l *List) RemoveLastOccurrence(v interface{}) bool {
+	var c, p, pp *node
 
-	for i := l.First(); i != nil; i = i.Next() {
-		if i.Value == v {
+	for i := l.first; i != nil; i = i.next {
+		if i.value == v {
 			c = i
 			p = pp
 		}
@@ -343,59 +407,85 @@ func (l *LinkedList) RemoveLastOccurrence(v interface{}) *Node {
 	}
 
 	if c != nil {
-		l.remove(c, p)
+		l.removeNode(c, p)
+
+		return true
 	}
 
-	return c
+	return false
 }
 
 // Pop removes and returns the last node or nil
-func (l *LinkedList) Pop() *Node {
-	return l.Remove(l.last)
+func (l *List) Pop() (list.Element, bool) {
+	r := l.removeNode(l.last, nil)
+
+	return r, r != nil
 }
 
 // Push creates a new node from a value, inserts it as the last node and returns it
-func (l *LinkedList) Push(v interface{}) *Node {
-	return l.InsertAfter(v, l.last)
+func (l *List) Push(v interface{}) {
+	l.InsertAfter(v, l.last)
 }
 
 // PushList adds the values of a list to the end of the list
-func (l *LinkedList) PushList(l2 *LinkedList) {
-	for i := l2.First(); i != nil; i = i.Next() {
-		l.Push(i.Value)
+func (l *List) PushList(l2 list.List) {
+	iter := l2.First()
+
+	if iter == nil {
+		return
+	}
+
+	for {
+		l.Push(iter.Value())
+
+		if !iter.Next() {
+			break
+		}
 	}
 }
 
 // Shift removes and returns the first node or nil
-func (l *LinkedList) Shift() *Node {
-	return l.Remove(l.first)
+func (l *List) Shift() (list.Element, bool) {
+	r := l.removeNode(l.first, nil)
+
+	return r, r != nil
 }
 
 // Unshift creates a new node from a value, inserts it as the first node and returns it
-func (l *LinkedList) Unshift(v interface{}) *Node {
-	return l.InsertBefore(v, l.first)
+func (l *List) Unshift(v interface{}) {
+	l.InsertBefore(v, l.first)
 }
 
 // UnshiftList adds the values of a list to the front of the list
-func (l *LinkedList) UnshiftList(l2 *LinkedList) {
-	for i := l2.First(); i != nil; i = i.Next() {
-		l.Unshift(i.Value)
+func (l *List) UnshiftList(l2 list.List) {
+	iter := l2.First()
+
+	if iter == nil {
+		return
+	}
+
+	for {
+		l.Unshift(iter.Value())
+
+		if !iter.Next() {
+			break
+		}
 	}
 }
 
 // Contains returns true if the value exists in the list
-func (l *LinkedList) Contains(v interface{}) bool {
+func (l *List) Contains(v interface{}) bool {
 	_, ok := l.IndexOf(v)
 
 	return ok
 }
 
 // IndexOf returns the first index of an occurence of the given value and true or -1 and false if the value does not exist
-func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
+func (l *List) IndexOf(v interface{}) (int, bool) {
 	i := 0
 
-	for n := l.First(); n != nil; n = n.Next() {
-		if n.Value == v {
+	for n := l.first; n != nil; n = n.next {
+		if n.value == v {
 			return i, true
 		}
 
@@ -406,12 +496,12 @@ func (l *LinkedList) IndexOf(v interface{}) (int, bool) {
 }
 
 // LastIndexOf returns the last index of an occurence of the given value and true or -1 and false if the value does not exist
-func (l *LinkedList) LastIndexOf(v interface{}) (int, bool) {
+func (l *List) LastIndexOf(v interface{}) (int, bool) {
 	i := 0
 	j := -1
 
-	for n := l.First(); n != nil; n = n.Next() {
-		if n.Value == v {
+	for n := l.first; n != nil; n = n.next {
+		if n.value == v {
 			j = i
 		}
 
@@ -421,8 +511,9 @@ func (l *LinkedList) LastIndexOf(v interface{}) (int, bool) {
 	return j, j != -1
 }
 
+/* TODO implement this with Element
 // MoveAfter moves node n after node p
-func (l *LinkedList) MoveAfter(n, p *Node) {
+func (l *List) MoveAfter(n, p *node) {
 	if n.list != l || p.list != l || n == p {
 		return
 	}
@@ -431,7 +522,7 @@ func (l *LinkedList) MoveAfter(n, p *Node) {
 }
 
 // MoveBefore moves node n before node p
-func (l *LinkedList) MoveBefore(n, p *Node) {
+func (l *List) MoveBefore(n, p *node) {
 	if n.list != l || p.list != l || n == p {
 		return
 	}
@@ -440,11 +531,12 @@ func (l *LinkedList) MoveBefore(n, p *Node) {
 }
 
 // MoveToBack moves the given node after the last node of the list
-func (l *LinkedList) MoveToBack(n *Node) {
+func (l *List) MoveToBack(n *node) {
 	l.MoveAfter(n, l.last)
 }
 
 // MoveToFront moves the given node before the first node of the list
-func (l *LinkedList) MoveToFront(n *Node) {
+func (l *List) MoveToFront(n *node) {
 	l.MoveBefore(n, l.first)
 }
+*/
