@@ -13,25 +13,25 @@ type node struct {
 	values   []interface{} // The values stored with this node
 }
 
-// Element holds one value coming from an unrolled linked list
-type Element struct {
+// element holds one value coming from an unrolled linked list
+type element struct {
 	value interface{}
 }
 
 // Value returns the value hold in the element
-func (e *Element) Value() interface{} {
+func (e *element) Value() interface{} {
 	return e.value
 }
 
-// Iterator is an iterator for an unrolled linked list
-type Iterator struct {
+// iterator is an iterator for an unrolled linked list
+type iterator struct {
 	current *node // The current node in traversal
 	i       int   // The current index of the current node
 	list    *List // The list to which this iterator belongs
 }
 
 // Next moves to the next node in the unrolled linked list and returns true or false if there is no next node
-func (iter *Iterator) Next() bool {
+func (iter *iterator) Next() bool {
 	iter.i++
 
 	if iter.current != nil && iter.i >= len(iter.current.values) {
@@ -43,7 +43,7 @@ func (iter *Iterator) Next() bool {
 }
 
 // Set sets a value at the current position of the iterator
-func (iter *Iterator) Set(v interface{}) {
+func (iter *iterator) Set(v interface{}) {
 	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
 		return
 	}
@@ -52,7 +52,7 @@ func (iter *Iterator) Set(v interface{}) {
 }
 
 // Value returns the value at the current position of the iterator
-func (iter *Iterator) Value() interface{} {
+func (iter *iterator) Value() interface{} {
 	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
 		return nil
 	}
@@ -105,14 +105,6 @@ func (l *List) Clear() {
 // Len returns the current list length
 func (l *List) Len() int {
 	return l.len
-}
-
-func (l *List) newIterator(current *node, i int) list.Iterator {
-	return &Iterator{
-		i:       i,
-		current: current,
-		list:    l,
-	}
 }
 
 func (l *List) insertElement(v interface{}, c *node, ic int) {
@@ -178,7 +170,7 @@ func (l *List) removeElement(c *node, ic int) list.Element {
 
 	}
 
-	return &Element{
+	return &element{
 		value: v,
 	}
 }
@@ -294,6 +286,14 @@ func (l *List) removeNode(c *node) *node {
 	return c
 }
 
+func (l *List) newIterator(current *node, i int) list.Iterator {
+	return &iterator{
+		i:       i,
+		current: current,
+		list:    l,
+	}
+}
+
 // First returns the first node of the list or nil
 func (l *List) First() list.Iterator {
 	if l.len == 0 {
@@ -320,7 +320,7 @@ func (l *List) Get(i int) (list.Element, error) {
 
 	for c := l.first; c != nil; c = c.next {
 		if i < len(c.values) {
-			return &Element{
+			return &element{
 				value: c.values[i],
 			}, nil
 		}
@@ -338,7 +338,7 @@ func (l *List) GetFunc(m func(v interface{}) bool) list.Element {
 	if iter != nil {
 		for {
 			if m(iter.Value()) {
-				return &Element{
+				return &element{
 					value: iter.Value(),
 				}
 			}
@@ -490,13 +490,9 @@ func (l *List) RemoveLastOccurrence(v interface{}) bool {
 
 // Pop removes and returns the last value and true or nil and false
 func (l *List) Pop() (list.Element, bool) {
-	if l.len == 0 {
-		return nil, false
-	}
+	r, _ := l.RemoveAt(l.len - 1)
 
-	v, _ := l.RemoveAt(l.len - 1)
-
-	return v, true
+	return r, r != nil
 }
 
 // Push creates a new node from a value and inserts it as the last node
@@ -527,13 +523,9 @@ func (l *List) PushList(l2 list.List) {
 
 // Shift removes and returns the first value and true or nil and false
 func (l *List) Shift() (list.Element, bool) {
-	if l.len == 0 {
-		return nil, false
-	}
+	r, _ := l.RemoveAt(0)
 
-	v, _ := l.RemoveAt(0)
-
-	return v, true
+	return r, r != nil
 }
 
 // Unshift creates a new node from a value and inserts it as the first node
