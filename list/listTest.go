@@ -90,7 +90,7 @@ func (lt *ListTest) testBasic(t *testing.T) {
 	n, ok = l.Pop()
 
 	for i > -1 && n != nil {
-		Equal(t, V[i], n.Value())
+		Equal(t, V[i], n)
 		True(t, ok)
 		Equal(t, l.Len(), i)
 
@@ -117,7 +117,7 @@ func (lt *ListTest) testBasic(t *testing.T) {
 	n, ok = l.Shift()
 
 	for i > -1 && n != nil {
-		Equal(t, V[i], n.Value())
+		Equal(t, V[i], n)
 		True(t, ok)
 		Equal(t, l.Len(), i)
 
@@ -182,15 +182,15 @@ func (lt *ListTest) testRemove(t *testing.T) {
 	// Remove Middle
 	n1, err := l.RemoveAt(1)
 	Nil(t, err)
-	Equal(t, n1.Value(), V[1])
+	Equal(t, n1, V[1])
 	n2, _ := l.Get(1)
-	Equal(t, n2.Value(), V[2])
+	Equal(t, n2, V[2])
 	Equal(t, l.Len(), len(V)-1)
 
 	// Remove First
 	n1, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1.Value(), V[0])
+	Equal(t, n1, V[0])
 	n3 := l.First()
 	Equal(t, n3.Value(), V[2])
 	Equal(t, l.Len(), len(V)-2)
@@ -198,7 +198,7 @@ func (lt *ListTest) testRemove(t *testing.T) {
 	// Remove Last
 	n1, err = l.RemoveAt(l.Len() - 1)
 	Nil(t, err)
-	Equal(t, n1.Value(), V[len(V)-1])
+	Equal(t, n1, V[len(V)-1])
 	n3 = l.Last()
 	Equal(t, n3.Value(), V[len(V)-2])
 	Equal(t, l.Len(), len(V)-3)
@@ -209,7 +209,7 @@ func (lt *ListTest) testRemove(t *testing.T) {
 
 	n1, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1.Value(), 23)
+	Equal(t, n1, 23)
 	Nil(t, l.First())
 	Nil(t, l.Last())
 
@@ -406,7 +406,7 @@ func (lt *ListTest) testGetSet(t *testing.T) {
 	for i, vi := range V {
 		n, err := l.Get(i)
 
-		Equal(t, n.Value(), vi)
+		Equal(t, n, vi)
 		Nil(t, err)
 
 		err = l.Set(i, i+10)
@@ -415,7 +415,7 @@ func (lt *ListTest) testGetSet(t *testing.T) {
 
 		n, err = l.Get(i)
 
-		Equal(t, n.Value(), i+10)
+		Equal(t, n, i+10)
 		Nil(t, err)
 	}
 }
@@ -452,19 +452,23 @@ func (lt *ListTest) testAddLists(t *testing.T) {
 func (lt *ListTest) testFunc(t *testing.T) {
 	l := lt.NewFilledList(t)
 
-	Equal(t, V[1], l.GetFunc(func(v interface{}) bool {
+	n, ok := l.GetFunc(func(v interface{}) bool {
 		return v == "a"
-	}).Value())
-	Nil(t, l.GetFunc(func(v interface{}) bool {
+	})
+	Equal(t, V[1], n)
+	True(t, ok)
+	n, ok = l.GetFunc(func(v interface{}) bool {
 		return v == "z"
-	}))
+	})
+	Nil(t, nil)
+	False(t, ok)
 
-	l.SetFunc(func(v interface{}) bool {
+	True(t, l.SetFunc(func(v interface{}) bool {
 		return v == 2
-	}, 3)
+	}, 3))
 	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
-	l.SetFunc(func(v interface{}) bool {
+	False(t, l.SetFunc(func(v interface{}) bool {
 		return v == "z"
-	}, 4)
+	}, 4))
 	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
 }

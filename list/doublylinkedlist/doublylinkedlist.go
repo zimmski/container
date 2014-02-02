@@ -13,20 +13,9 @@ type node struct {
 	value    interface{} // The value stored with this node
 }
 
-// element holds one value coming from an linked list
-type element struct {
-	value interface{}
-}
-
-// Value returns the value hold in the element
-func (e *element) Value() interface{} {
-	return e.value
-}
-
 // iterator is an iterator for an linked list
 type iterator struct {
 	current *node // The current node in traversal
-	list    *List // The list to which this iterator belongs
 }
 
 // Next moves to the next node in the linked list and returns true or false if there is no next node
@@ -104,25 +93,84 @@ func (l *List) newNode(v interface{}) *node {
 
 // getNode returns the node with the given index or nil
 func (l *List) getNode(i int) (*node, error) {
-	if i < 0 || i >= l.len {
-		return nil, errors.New("index bounds out of range")
+	if i > -1 || i < l.len {
+		j := 0
+
+		for n := l.first; n != nil; n = n.next {
+			if i == j {
+				return n, nil
+			}
+
+			j++
+		}
 	}
 
-	j := 0
+	return nil, errors.New("index bounds out of range")
+}
 
-	for n := l.first; n != nil; n = n.next {
-		if i == j {
-			return n, nil
+// insertNodeAfter creates a new node from a value, inserts it after a given node and returns the new one
+func (l *List) insertNodeAfter(v interface{}, p *node) *node {
+	if p == nil && l.len != 0 {
+		return nil
+	}
+
+	n := l.newNode(v)
+
+	// insert first node
+	if p == nil {
+		l.first = n
+		l.last = n
+	} else {
+		n.next = p.next
+		if p.next != nil {
+			p.next.previous = n
+		}
+		p.next = n
+		n.previous = p
+
+		if p == l.last {
+			l.last = n
+		}
+	}
+
+	l.len++
+
+	return n
+}
+
+// insertNodeBefore creates a new node from a value, inserts it before a given node and returns the new one
+func (l *List) insertNodeBefore(v interface{}, p *node) *node {
+	if p == nil && l.len != 0 {
+		return nil
+	}
+
+	n := l.newNode(v)
+
+	// insert first node
+	if p == nil {
+		l.first = n
+		l.last = n
+	} else {
+		if p == l.first {
+			l.first = n
+		} else {
+			if p.previous != nil {
+				p.previous.next = n
+				n.previous = p.previous
+			}
 		}
 
-		j++
+		n.next = p
+		p.previous = n
 	}
 
-	panic("there is something wrong with the internal structure")
+	l.len++
+
+	return n
 }
 
 // remove removes a given node from the list using the provided parent p
-func (l *List) removeNode(c *node) list.Element {
+func (l *List) removeNode(c *node) interface{} {
 	if c == nil || l.len == 0 {
 		return nil
 	}
@@ -154,15 +202,12 @@ func (l *List) removeNode(c *node) list.Element {
 
 	l.len--
 
-	return &element{
-		value: c.value,
-	}
+	return c.value
 }
 
-func (l *List) newiterator(current *node) list.Iterator {
+func (l *List) newiterator(current *node) *iterator {
 	return &iterator{
 		current: current,
-		list:    l,
 	}
 }
 
@@ -185,29 +230,25 @@ func (l *List) Last() list.Iterator {
 }
 
 // Get returns the node with the given index or nil
-func (l *List) Get(i int) (list.Element, error) {
+func (l *List) Get(i int) (interface{}, error) {
 	n, err := l.getNode(i)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &element{
-		value: n.value,
-	}, nil
+	return n.value, nil
 }
 
 // GetFunc returns the first node selected by a given function
-func (l *List) GetFunc(m func(v interface{}) bool) list.Element {
+func (l *List) GetFunc(m func(v interface{}) bool) (interface{}, bool) {
 	for n := l.first; n != nil; n = n.next {
 		if m(n.value) {
-			return &element{
-				value: n.value,
-			}
+			return n.value, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
 // Set replaces the value in the list with the given value
@@ -224,14 +265,16 @@ func (l *List) Set(i int, v interface{}) error {
 }
 
 // SetFunc replaces the value of the first node selected by a given function
-func (l *List) SetFunc(m func(v interface{}) bool, v interface{}) {
+func (l *List) SetFunc(m func(v interface{}) bool, v interface{}) bool {
 	for n := l.first; n != nil; n = n.next {
 		if m(n.value) {
 			n.value = v
 
-			return
+			return true
 		}
 	}
+
+	return false
 }
 
 // Copy returns an exact copy of the list
@@ -260,69 +303,6 @@ func (l *List) ToArray() []interface{} {
 	return a
 }
 
-// TODO this should use Element and not node
-// InsertAfter creates a new node from a value, inserts it after a given node and returns the new one
-func (l *List) InsertAfter(v interface{}, p *node) *node {
-	if p == nil && l.len != 0 {
-		return nil
-	}
-
-	n := l.newNode(v)
-
-	// insert first node
-	if p == nil {
-		l.first = n
-		l.last = n
-	} else {
-		n.next = p.next
-		if p.next != nil {
-			p.next.previous = n
-		}
-		p.next = n
-		n.previous = p
-
-		if p == l.last {
-			l.last = n
-		}
-	}
-
-	l.len++
-
-	return n
-}
-
-// TODO this should use Element and not node
-// InsertBefore creates a new node from a value, inserts it before a given node and returns the new one
-func (l *List) InsertBefore(v interface{}, p *node) *node {
-	if p == nil && l.len != 0 {
-		return nil
-	}
-
-	n := l.newNode(v)
-
-	// insert first node
-	if p == nil {
-		l.first = n
-		l.last = n
-	} else {
-		if p == l.first {
-			l.first = n
-		} else {
-			if p.previous != nil {
-				p.previous.next = n
-				n.previous = p.previous
-			}
-		}
-
-		n.next = p
-		p.previous = n
-	}
-
-	l.len++
-
-	return n
-}
-
 // InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
 func (l *List) InsertAt(i int, v interface{}) error {
 	if i < 0 || i > l.len {
@@ -336,53 +316,14 @@ func (l *List) InsertAt(i int, v interface{}) error {
 	} else {
 		p, _ := l.getNode(i)
 
-		l.InsertBefore(v, p)
+		l.insertNodeBefore(v, p)
 	}
 
 	return nil
 }
 
-/* TODO implement with Element
-// Remove removes a given node from the list
-func (l *List) Remove(c *node) *node {
-	if c == nil || c.list != l || l.len == 0 {
-		return nil
-	}
-
-	if c == l.first {
-		l.first = c.next
-		if c.next != nil {
-			c.next.previous = nil
-		}
-
-		// c is the last node
-		if c == l.last {
-			l.last = nil
-		}
-	} else {
-		if c.previous != nil {
-			c.previous.next = c.next
-
-			if c.next != nil {
-				c.next.previous = c.previous
-			} else if c == l.last {
-				l.last = c.previous
-			}
-		}
-	}
-
-	c.list = nil
-	c.next = nil
-	c.previous = nil
-
-	l.len--
-
-	return c
-}
-*/
-
 // RemoveAt removes a node from the list at the given index
-func (l *List) RemoveAt(i int) (list.Element, error) {
+func (l *List) RemoveAt(i int) (interface{}, error) {
 	if i < 0 || i >= l.len {
 		return nil, errors.New("index bounds out of range")
 	}
@@ -419,7 +360,7 @@ func (l *List) RemoveLastOccurrence(v interface{}) bool {
 }
 
 // Pop removes and returns the last node or nil
-func (l *List) Pop() (list.Element, bool) {
+func (l *List) Pop() (interface{}, bool) {
 	r := l.removeNode(l.last)
 
 	return r, r != nil
@@ -427,7 +368,7 @@ func (l *List) Pop() (list.Element, bool) {
 
 // Push creates a new node from a value, inserts it as the last node and returns it
 func (l *List) Push(v interface{}) {
-	l.InsertAfter(v, l.last)
+	l.insertNodeAfter(v, l.last)
 }
 
 // PushList adds the values of a list to the end of the list
@@ -448,7 +389,7 @@ func (l *List) PushList(l2 list.List) {
 }
 
 // Shift removes and returns the first node or nil
-func (l *List) Shift() (list.Element, bool) {
+func (l *List) Shift() (interface{}, bool) {
 	r := l.removeNode(l.first)
 
 	return r, r != nil
@@ -456,7 +397,7 @@ func (l *List) Shift() (list.Element, bool) {
 
 // Unshift creates a new node from a value, inserts it as the first node and returns it
 func (l *List) Unshift(v interface{}) {
-	l.InsertBefore(v, l.first)
+	l.insertNodeBefore(v, l.first)
 }
 
 // UnshiftList adds the values of a list to the front of the list
@@ -512,33 +453,3 @@ func (l *List) LastIndexOf(v interface{}) (int, bool) {
 
 	return -1, false
 }
-
-/* TODO implement this with Element
-// MoveAfter moves node n after node p
-func (l *List) MoveAfter(n, p *node) {
-	if n.list != l || p.list != l || n == p {
-		return
-	}
-
-	l.InsertAfter(l.Remove(n).Value, p)
-}
-
-// MoveBefore moves node n before node p
-func (l *List) MoveBefore(n, p *node) {
-	if n.list != l || p.list != l || n == p {
-		return
-	}
-
-	l.InsertBefore(l.Remove(n).Value, p)
-}
-
-// MoveToBack moves the given node after the last node of the list
-func (l *List) MoveToBack(n *node) {
-	l.MoveAfter(n, l.last)
-}
-
-// MoveToFront moves the given node before the first node of the list
-func (l *List) MoveToFront(n *node) {
-	l.MoveBefore(n, l.first)
-}
-*/

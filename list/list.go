@@ -1,10 +1,5 @@
 package list
 
-// Element holds one value coming from a list
-type Element interface {
-	Value() interface{}
-}
-
 // Iterator is an iterator for a list
 type Iterator interface {
 	Next() bool
@@ -19,22 +14,22 @@ type List interface {
 
 	First() Iterator
 	Last() Iterator
-	Get(i int) (Element, error)
-	GetFunc(m func(v interface{}) bool) Element
+	Get(i int) (interface{}, error)
+	GetFunc(m func(v interface{}) bool) (interface{}, bool)
 	Set(i int, v interface{}) error
-	SetFunc(m func(v interface{}) bool, v interface{})
+	SetFunc(m func(v interface{}) bool, v interface{}) bool
 
 	Copy() List
 	ToArray() []interface{}
 
 	InsertAt(i int, v interface{}) error
-	RemoveAt(i int) (Element, error)
+	RemoveAt(i int) (interface{}, error)
 	RemoveFirstOccurrence(v interface{}) bool
 	RemoveLastOccurrence(v interface{}) bool
-	Pop() (Element, bool)
+	Pop() (interface{}, bool)
 	Push(v interface{})
 	PushList(l2 List)
-	Shift() (Element, bool)
+	Shift() (interface{}, bool)
 	Unshift(v interface{})
 	UnshiftList(l2 List)
 
