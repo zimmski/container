@@ -25,9 +25,9 @@ type List interface {
 	// ChanBack returns a channel which iterates from the back to the front of the list
 	ChanBack(n int) <-chan interface{}
 
-	// Iter returns an iterator which iterates from the front to the back of the list, or nil if there are no elements in the list
+	// Iter returns an iterator which starts at the front of the list, or nil if there are no elements in the list
 	Iter() Iterator
-	// IterBack returns an iterator which iterates from the back to the front of the list, or nil if there are no elements in the list
+	// IterBack returns an iterator which starts at the back of the list, or nil if there are no elements in the list
 	IterBack() Iterator
 
 	// First returns the first value of the list and true, or false if there is no value

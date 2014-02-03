@@ -22,7 +22,9 @@ func (lt *ListTest) Run(t *testing.T) {
 	lt.NewFilledList(t)
 
 	lt.testBasic(t)
-	lt.testToArray(t)
+	lt.testIterator(t)
+	lt.testChannels(t)
+	lt.testSlice(t)
 	lt.testInserts(t)
 	lt.testRemove(t)
 	lt.testRemoveOccurrence(t)
@@ -31,7 +33,9 @@ func (lt *ListTest) Run(t *testing.T) {
 	lt.testFind(t)
 	lt.testGetSet(t)
 	lt.testAddLists(t)
-	lt.testFunc(t)
+	lt.testFuncs(t)
+	lt.testSwap(t)
+	lt.testMoves(t)
 }
 
 // FillList fills up a given list with V
@@ -40,14 +44,18 @@ func (lt *ListTest) FillList(t *testing.T, l List) {
 		l.Push(va)
 
 		Equal(t, l.Len(), i+1)
-		Equal(t, l.First().Value(), V[0])
-		Equal(t, l.Last().Value(), va)
+		n, ok := l.First()
+		True(t, ok)
+		Equal(t, n, V[0])
+		n, ok = l.Last()
+		True(t, ok)
+		Equal(t, n, va)
 	}
 
 	Equal(t, l.Len(), VLen)
 }
 
-// NewFilledList createes a new list and calls FillList on it
+// NewFilledList creates a new list and calls FillList on it
 func (lt *ListTest) NewFilledList(t *testing.T) List {
 	l := lt.New(t)
 
@@ -56,13 +64,28 @@ func (lt *ListTest) NewFilledList(t *testing.T) List {
 	return l
 }
 
+// NewDigitList creates a new list and fills it with numbers from 0 to 4
+func (lt *ListTest) NewDigitList(t *testing.T) List {
+	l := lt.New(t)
+
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+
+	return l
+}
+
 func (lt *ListTest) testBasic(t *testing.T) {
 	l := lt.New(t)
 
 	Equal(t, l.Len(), 0)
-	Nil(t, l.First())
-	Nil(t, l.Last())
-	n, ok := l.Pop()
+	n, ok := l.First()
+	False(t, ok)
+	Nil(t, n)
+	n, ok = l.Last()
+	False(t, ok)
+	Nil(t, n)
+	n, ok = l.Pop()
 	Nil(t, n)
 	False(t, ok)
 	n, ok = l.Shift()
@@ -72,19 +95,22 @@ func (lt *ListTest) testBasic(t *testing.T) {
 	lt.FillList(t, l)
 
 	i := 0
-	c := l.First()
+	iter := l.Iter()
+	NotNil(t, iter)
 
 	for i < VLen {
-		Equal(t, V[i], c.Value())
+		Equal(t, V[i], iter.Get())
 
 		i++
+
+		iter = iter.Next()
+
 		if i < VLen {
-			True(t, c.Next())
+			NotNil(t, iter)
+		} else {
+			Nil(t, iter)
 		}
 	}
-
-	False(t, c.Next())
-	Nil(t, c.Value())
 
 	i = VLen - 1
 	n, ok = l.Pop()
@@ -107,8 +133,12 @@ func (lt *ListTest) testBasic(t *testing.T) {
 		l.Unshift(va)
 
 		Equal(t, l.Len(), i+1)
-		Equal(t, l.First().Value(), va)
-		Equal(t, l.Last().Value(), V[0])
+		n, ok := l.First()
+		True(t, ok)
+		Equal(t, n, va)
+		n, ok = l.Last()
+		True(t, ok)
+		Equal(t, n, V[0])
 	}
 
 	Equal(t, l.Len(), VLen)
@@ -130,18 +160,156 @@ func (lt *ListTest) testBasic(t *testing.T) {
 	Equal(t, l.Len(), 0)
 }
 
-func (lt *ListTest) testToArray(t *testing.T) {
+func (lt *ListTest) testIterator(t *testing.T) {
+	// empty iterators
 	l := lt.New(t)
-	Equal(t, l.ToArray(), []interface{}{})
+
+	Nil(t, l.Iter())
+	Nil(t, l.IterBack())
+
+	// one element
+	l.Push(V[0])
+
+	iter := l.Iter()
+	NotNil(t, iter)
+	Equal(t, V[0], iter.Get())
+	Nil(t, iter.Next())
+
+	iter = l.IterBack()
+	NotNil(t, iter)
+	Equal(t, V[0], iter.Get())
+	Nil(t, iter.Previous())
+
+	// full iterators
+	l = lt.NewFilledList(t)
+
+	i := 0
+
+	for iter = l.Iter(); iter != nil; iter = iter.Next() {
+		Equal(t, iter.Get(), V[i])
+
+		iter.Set(i)
+
+		Equal(t, iter.Get(), i)
+
+		v, _ := l.Get(i)
+		Equal(t, v, i)
+
+		i++
+	}
+
+	Equal(t, i, VLen)
+
+	l = lt.NewFilledList(t)
+
+	i = VLen - 1
+
+	for iter = l.IterBack(); iter != nil; iter = iter.Previous() {
+		Equal(t, iter.Get(), V[i])
+
+		iter.Set(i)
+
+		Equal(t, iter.Get(), i)
+
+		v, _ := l.Get(i)
+		Equal(t, v, i)
+
+		i--
+	}
+
+	Equal(t, i, -1)
+
+	// iterate in wrong direction
+	iter = l.Iter()
+	Nil(t, iter.Previous())
+
+	iter = l.IterBack()
+	Nil(t, iter.Next())
+}
+
+func (lt *ListTest) testChannels(t *testing.T) {
+	// empty channels
+	l := lt.New(t)
+
+	i := 0
+
+	for v := range l.Chan(0) {
+		Equal(t, v, V[i])
+
+		i++
+	}
+
+	Equal(t, i, 0)
+
+	i = 0
+
+	for v := range l.ChanBack(0) {
+		Equal(t, v, V[i])
+
+		i++
+	}
+
+	Equal(t, i, 0)
+
+	// one element
+	l.Push(1)
+
+	i = 0
+
+	for v := range l.Chan(0) {
+		Equal(t, v, V[i])
+
+		i++
+	}
+
+	Equal(t, i, 1)
+
+	i = 0
+
+	for v := range l.ChanBack(0) {
+		Equal(t, v, V[i])
+
+		i++
+	}
+
+	Equal(t, i, 1)
+
+	// full iterators
+	l = lt.NewFilledList(t)
+
+	i = 0
+
+	for v := range l.Chan(0) {
+		Equal(t, v, V[i])
+
+		i++
+	}
+
+	Equal(t, i, VLen)
+
+	i = VLen - 1
+
+	for v := range l.ChanBack(0) {
+		Equal(t, v, V[i])
+
+		i--
+	}
+
+	Equal(t, i, -1)
+}
+
+func (lt *ListTest) testSlice(t *testing.T) {
+	l := lt.New(t)
+	Equal(t, l.Slice(), []interface{}{})
 
 	lt.FillList(t, l)
-	Equal(t, l.ToArray(), V)
+	Equal(t, l.Slice(), V)
 
 	l.Shift()
-	Equal(t, l.ToArray(), V[1:])
+	Equal(t, l.Slice(), V[1:])
 
 	l.Pop()
-	Equal(t, l.ToArray(), V[1:len(V)-1])
+	Equal(t, l.Slice(), V[1:len(V)-1])
 }
 
 func (lt *ListTest) testInserts(t *testing.T) {
@@ -150,17 +318,17 @@ func (lt *ListTest) testInserts(t *testing.T) {
 
 	err := l1.InsertAt(0, 0)
 	Nil(t, err)
-	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d"})
+	Equal(t, l1.Slice(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d"})
 	Equal(t, l1.Len(), VLen+1)
 
 	err = l1.InsertAt(l1.Len(), 0)
 	Nil(t, err)
-	Equal(t, l1.ToArray(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d", 0})
+	Equal(t, l1.Slice(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d", 0})
 	Equal(t, l1.Len(), VLen+2)
 
 	err = l1.InsertAt(2, 0)
 	Nil(t, err)
-	Equal(t, l1.ToArray(), []interface{}{0, 1, 0, "a", 2, "b", 3, "c", 4, "d", 0})
+	Equal(t, l1.Slice(), []interface{}{0, 1, 0, "a", 2, "b", 3, "c", 4, "d", 0})
 	Equal(t, l1.Len(), VLen+3)
 
 	// out of bound
@@ -180,38 +348,42 @@ func (lt *ListTest) testRemove(t *testing.T) {
 	NotNil(t, err)
 
 	// Remove Middle
-	n1, err := l.RemoveAt(1)
+	n, err := l.RemoveAt(1)
 	Nil(t, err)
-	Equal(t, n1, V[1])
-	n2, _ := l.Get(1)
-	Equal(t, n2, V[2])
+	Equal(t, n, V[1])
+	n, _ = l.Get(1)
+	Equal(t, n, V[2])
 	Equal(t, l.Len(), len(V)-1)
 
 	// Remove First
-	n1, err = l.RemoveAt(0)
+	n, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1, V[0])
-	n3 := l.First()
-	Equal(t, n3.Value(), V[2])
+	Equal(t, n, V[0])
+	n, _ = l.First()
+	Equal(t, n, V[2])
 	Equal(t, l.Len(), len(V)-2)
 
 	// Remove Last
-	n1, err = l.RemoveAt(l.Len() - 1)
+	n, err = l.RemoveAt(l.Len() - 1)
 	Nil(t, err)
-	Equal(t, n1, V[len(V)-1])
-	n3 = l.Last()
-	Equal(t, n3.Value(), V[len(V)-2])
+	Equal(t, n, V[len(V)-1])
+	n, _ = l.Last()
+	Equal(t, n, V[len(V)-2])
 	Equal(t, l.Len(), len(V)-3)
 
 	// Remove very last node
 	l.Clear()
 	l.Push(23)
 
-	n1, err = l.RemoveAt(0)
+	n, err = l.RemoveAt(0)
 	Nil(t, err)
-	Equal(t, n1, 23)
-	Nil(t, l.First())
-	Nil(t, l.Last())
+	Equal(t, n, 23)
+	n, ok := l.First()
+	False(t, ok)
+	Nil(t, n)
+	n, ok = l.Last()
+	False(t, ok)
+	Nil(t, n)
 
 	// remove structure
 	l = lt.New(t)
@@ -219,16 +391,16 @@ func (lt *ListTest) testRemove(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		l.Push(i % 10)
 	}
-	Equal(t, l.ToArray(), []interface{}{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
+	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
 
 	l.RemoveAt(2)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 3, 4, 5, 6, 7, 8, 9})
+	Equal(t, l.Slice(), []interface{}{0, 1, 3, 4, 5, 6, 7, 8, 9})
 	l.RemoveAt(2)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 4, 5, 6, 7, 8, 9})
+	Equal(t, l.Slice(), []interface{}{0, 1, 4, 5, 6, 7, 8, 9})
 	l.RemoveAt(2)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 5, 6, 7, 8, 9})
+	Equal(t, l.Slice(), []interface{}{0, 1, 5, 6, 7, 8, 9})
 	l.RemoveAt(2)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 6, 7, 8, 9})
+	Equal(t, l.Slice(), []interface{}{0, 1, 6, 7, 8, 9})
 }
 
 func (lt *ListTest) testRemoveOccurrence(t *testing.T) {
@@ -241,22 +413,22 @@ func (lt *ListTest) testRemoveOccurrence(t *testing.T) {
 	ok := l.RemoveFirstOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 4)
-	Equal(t, l.ToArray(), []interface{}{1, 0, 1, 0})
+	Equal(t, l.Slice(), []interface{}{1, 0, 1, 0})
 
 	ok = l.RemoveFirstOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 3)
-	Equal(t, l.ToArray(), []interface{}{1, 1, 0})
+	Equal(t, l.Slice(), []interface{}{1, 1, 0})
 
 	ok = l.RemoveFirstOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.ToArray(), []interface{}{1, 1})
+	Equal(t, l.Slice(), []interface{}{1, 1})
 
 	ok = l.RemoveFirstOccurrence(0)
 	False(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.ToArray(), []interface{}{1, 1})
+	Equal(t, l.Slice(), []interface{}{1, 1})
 
 	l.Clear()
 
@@ -267,22 +439,22 @@ func (lt *ListTest) testRemoveOccurrence(t *testing.T) {
 	ok = l.RemoveLastOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 4)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 0, 1})
+	Equal(t, l.Slice(), []interface{}{0, 1, 0, 1})
 
 	ok = l.RemoveLastOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 3)
-	Equal(t, l.ToArray(), []interface{}{0, 1, 1})
+	Equal(t, l.Slice(), []interface{}{0, 1, 1})
 
 	ok = l.RemoveLastOccurrence(0)
 	True(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.ToArray(), []interface{}{1, 1})
+	Equal(t, l.Slice(), []interface{}{1, 1})
 
 	ok = l.RemoveLastOccurrence(0)
 	False(t, ok)
 	Equal(t, l.Len(), 2)
-	Equal(t, l.ToArray(), []interface{}{1, 1})
+	Equal(t, l.Slice(), []interface{}{1, 1})
 }
 
 func (lt *ListTest) testClear(t *testing.T) {
@@ -291,9 +463,13 @@ func (lt *ListTest) testClear(t *testing.T) {
 	l.Clear()
 
 	Equal(t, l.Len(), 0)
-	Nil(t, l.First())
-	Nil(t, l.Last())
-	n, ok := l.Pop()
+	n, ok := l.First()
+	False(t, ok)
+	Nil(t, n)
+	n, ok = l.Last()
+	False(t, ok)
+	Nil(t, n)
+	n, ok = l.Pop()
 	Nil(t, n)
 	False(t, ok)
 }
@@ -305,26 +481,27 @@ func (lt *ListTest) testCopy(t *testing.T) {
 
 	Equal(t, l1.Len(), l2.Len())
 
-	n1 := l1.First()
-	n2 := l2.First()
+	n1 := l1.Iter()
+	NotNil(t, n1)
+	n2 := l2.Iter()
+	NotNil(t, n2)
 
 	if n1 != nil && n2 != nil {
 		for {
-			Equal(t, n1.Value(), n2.Value())
+			Equal(t, n1.Get(), n2.Get())
 
-			ok1 := n1.Next()
-			ok2 := n2.Next()
+			n1 = n1.Next()
+			n2 = n2.Next()
 
-			Equal(t, ok1, ok2)
+			if (n1 == nil && n2 != nil) || (n1 != nil && n2 == nil) {
+				Fail(t, "n1 not equal to n2")
+			}
 
-			if !ok1 {
+			if n1 == nil {
 				break
 			}
 		}
 	}
-
-	Nil(t, n1.Value())
-	Nil(t, n2.Value())
 }
 
 func (lt *ListTest) testFind(t *testing.T) {
@@ -434,22 +611,22 @@ func (lt *ListTest) testAddLists(t *testing.T) {
 	l3.Push(1)
 
 	l1.PushList(l2)
-	Equal(t, l1.ToArray(), []interface{}{3, 4, 5, 6})
+	Equal(t, l1.Slice(), []interface{}{3, 4, 5, 6})
 
 	l1.UnshiftList(l3)
-	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+	Equal(t, l1.Slice(), []interface{}{1, 2, 3, 4, 5, 6})
 
 	// empty lists
 	l4 := lt.New(t)
 
 	l1.PushList(l4)
-	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+	Equal(t, l1.Slice(), []interface{}{1, 2, 3, 4, 5, 6})
 
 	l1.UnshiftList(l4)
-	Equal(t, l1.ToArray(), []interface{}{1, 2, 3, 4, 5, 6})
+	Equal(t, l1.Slice(), []interface{}{1, 2, 3, 4, 5, 6})
 }
 
-func (lt *ListTest) testFunc(t *testing.T) {
+func (lt *ListTest) testFuncs(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	n, ok := l.GetFunc(func(v interface{}) bool {
@@ -466,9 +643,128 @@ func (lt *ListTest) testFunc(t *testing.T) {
 	True(t, l.SetFunc(func(v interface{}) bool {
 		return v == 2
 	}, 3))
-	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+	Equal(t, l.Slice(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
 	False(t, l.SetFunc(func(v interface{}) bool {
 		return v == "z"
 	}, 4))
-	Equal(t, l.ToArray(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+	Equal(t, l.Slice(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+}
+
+func (lt *ListTest) testSwap(t *testing.T) {
+	l := lt.NewFilledList(t)
+
+	l.Swap(0, 0)
+	Equal(t, l.Slice(), V)
+
+	l.Swap(0, 1)
+	v, _ := l.Get(0)
+	Equal(t, v, V[1])
+	v, _ = l.Get(1)
+	Equal(t, v, V[0])
+
+	l.Swap(0, 1)
+	Equal(t, l.Slice(), V)
+}
+
+func (lt *ListTest) testMoves(t *testing.T) {
+	l := lt.NewDigitList(t)
+	ll := l.Len()
+	lll := ll - 1
+
+	// out of bounds
+	err := l.MoveAfter(-1, 0)
+	NotNil(t, err)
+	err = l.MoveAfter(0, ll)
+	NotNil(t, err)
+	err = l.MoveBefore(-1, 0)
+	NotNil(t, err)
+	err = l.MoveBefore(0, ll)
+	NotNil(t, err)
+	err = l.MoveToBack(-1)
+	NotNil(t, err)
+	err = l.MoveToBack(ll)
+	NotNil(t, err)
+	err = l.MoveToFront(-1)
+	NotNil(t, err)
+	err = l.MoveToFront(ll)
+	NotNil(t, err)
+
+	// basics
+	l.MoveAfter(0, lll)
+	Equal(t, l.Slice(), []interface{}{1, 2, 3, 4, 0})
+	Equal(t, l.Len(), ll)
+
+	l.MoveAfter(lll, 0)
+	Equal(t, l.Slice(), []interface{}{1, 0, 2, 3, 4})
+	Equal(t, l.Len(), ll)
+
+	l.MoveAfter(1, 2)
+	Equal(t, l.Slice(), []interface{}{1, 2, 0, 3, 4})
+	Equal(t, l.Len(), ll)
+
+	l.MoveAfter(2, 1)
+	Equal(t, l.Slice(), []interface{}{1, 2, 0, 3, 4})
+	Equal(t, l.Len(), ll)
+
+	l.Push(0)
+	Equal(t, l.Slice(), []interface{}{1, 2, 0, 3, 4, 0})
+	Equal(t, l.Len(), ll+1)
+
+	l = lt.NewDigitList(t)
+
+	l.MoveBefore(0, lll)
+	Equal(t, l.Slice(), []interface{}{1, 2, 3, 0, 4})
+	Equal(t, l.Len(), ll)
+
+	l.MoveBefore(lll, 0)
+	Equal(t, l.Slice(), []interface{}{4, 1, 2, 3, 0})
+	Equal(t, l.Len(), ll)
+
+	l.MoveBefore(1, 2)
+	Equal(t, l.Slice(), []interface{}{4, 1, 2, 3, 0})
+	Equal(t, l.Len(), ll)
+
+	l.MoveBefore(2, 1)
+	Equal(t, l.Slice(), []interface{}{4, 2, 1, 3, 0})
+	Equal(t, l.Len(), ll)
+
+	l.Push(0)
+	Equal(t, l.Slice(), []interface{}{4, 2, 1, 3, 0, 0})
+	Equal(t, l.Len(), ll+1)
+
+	l = lt.NewDigitList(t)
+
+	l.MoveToBack(0)
+	Equal(t, l.Slice(), []interface{}{1, 2, 3, 4, 0})
+	Equal(t, l.Len(), ll)
+
+	l.MoveToBack(lll)
+	Equal(t, l.Slice(), []interface{}{1, 2, 3, 4, 0})
+	Equal(t, l.Len(), ll)
+
+	l.MoveToBack(2)
+	Equal(t, l.Slice(), []interface{}{1, 2, 4, 0, 3})
+	Equal(t, l.Len(), ll)
+
+	l.Push(0)
+	Equal(t, l.Slice(), []interface{}{1, 2, 4, 0, 3, 0})
+	Equal(t, l.Len(), ll+1)
+
+	l = lt.NewDigitList(t)
+
+	l.MoveToFront(0)
+	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4})
+	Equal(t, l.Len(), ll)
+
+	l.MoveToFront(lll)
+	Equal(t, l.Slice(), []interface{}{4, 0, 1, 2, 3})
+	Equal(t, l.Len(), ll)
+
+	l.MoveToFront(2)
+	Equal(t, l.Slice(), []interface{}{1, 4, 0, 2, 3})
+	Equal(t, l.Len(), ll)
+
+	l.Push(0)
+	Equal(t, l.Slice(), []interface{}{1, 4, 0, 2, 3, 0})
+	Equal(t, l.Len(), ll+1)
 }
