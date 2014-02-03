@@ -6,13 +6,13 @@ import (
 	"github.com/zimmski/container/list"
 )
 
-// node holds a single node of a linkedlist
+// node holds a single node of a single linked list
 type node struct {
 	next  *node       // The node after this node in the list
 	value interface{} // The value stored with this node
 }
 
-// iterator holds the iterator for a linkedlist
+// iterator holds the iterator for a single linked list
 type iterator struct {
 	current *node // The current node in traversal
 	list    *List // The list to which this iterator belongs
@@ -135,28 +135,6 @@ func (l *List) getNode(i int) (*node, error) {
 	}
 
 	return nil, errors.New("index bounds out of range")
-}
-
-// insertNodeAfter creates a new node from a value, inserts it after a given node and returns the new one
-func (l *List) insertNodeAfter(v interface{}, p *node) *node {
-	n := l.newNode(v)
-
-	// insert first node
-	if p == nil {
-		l.first = n
-		l.last = n
-	} else {
-		n.next = p.next
-		p.next = n
-
-		if p == l.last {
-			l.last = n
-		}
-	}
-
-	l.len++
-
-	return n
 }
 
 // insertNodeBefore creates a new node from a value, inserts it before a given node and returns the new one
@@ -326,7 +304,6 @@ func (l *List) Set(i int, v interface{}) error {
 }
 
 // SetFunc sets the value of the first element selected by the given function and returns true, or false if there is no such element
-
 func (l *List) SetFunc(m func(v interface{}) bool, v interface{}) bool {
 	for n := l.first; n != nil; n = n.next {
 		if m(n.value) {
@@ -494,7 +471,17 @@ func (l *List) Pop() (interface{}, bool) {
 
 // Push inserts the given value at the end of the list
 func (l *List) Push(v interface{}) {
-	l.insertNodeAfter(v, l.last)
+	n := l.newNode(v)
+
+	if l.len == 0 {
+		l.first = n
+	} else {
+		l.last.next = n
+	}
+
+	l.last = n
+
+	l.len++
 }
 
 // PushList pushes the given list
