@@ -6,21 +6,21 @@ import (
 	"github.com/zimmski/container/list"
 )
 
-// node is holding values in the unrolled linked list
+// node holds a single node with values of a unrolled linked list
 type node struct {
 	next     *node         // The node after this node in the list
 	previous *node         // The node before this node in the list
 	values   []interface{} // The values stored with this node
 }
 
-// iterator is an iterator for an unrolled linked list
+// iterator holds the iterator for a doubly linked list
 type iterator struct {
 	current *node // The current node in traversal
 	i       int   // The current index of the current node
 }
 
-// Next moves to the next node in the unrolled linked list and returns true or false if there is no next node
-func (iter *iterator) Next() bool {
+// Next iterates to the next element in the list and returns the iterator, or nil if there is no next element
+func (iter *iterator) Next() list.Iterator {
 	iter.i++
 
 	if iter.current != nil && iter.i >= len(iter.current.values) {
@@ -28,28 +28,43 @@ func (iter *iterator) Next() bool {
 		iter.current = iter.current.next
 	}
 
-	return iter.current != nil
-}
-
-// Set sets a value at the current position of the iterator
-func (iter *iterator) Set(v interface{}) {
-	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
-		return
-	}
-
-	iter.current.values[iter.i] = v
-}
-
-// Value returns the value at the current position of the iterator
-func (iter *iterator) Value() interface{} {
-	if iter.current == nil || iter.i < 0 || iter.i >= len(iter.current.values) {
+	if iter.current == nil {
 		return nil
 	}
 
+	return iter
+}
+
+// Previous iterates to the previous element in the list and returns the iterator, or nil if there is no previous element
+func (iter *iterator) Previous() list.Iterator {
+	iter.i--
+
+	if iter.current != nil && iter.i < 0 {
+		iter.current = iter.current.previous
+
+		if iter.current != nil {
+			iter.i = len(iter.current.values) - 1
+		}
+	}
+
+	if iter.current == nil {
+		return nil
+	}
+
+	return iter
+}
+
+// Get returns the value of the iterator's current element
+func (iter *iterator) Get() interface{} {
 	return iter.current.values[iter.i]
 }
 
-// List is a unrolled linked list
+// Set sets the value of the iterator's current element
+func (iter *iterator) Set(v interface{}) {
+	iter.current.values[iter.i] = v
+}
+
+// List holds a unrolled linked list
 type List struct {
 	first       *node // The first node of the list
 	last        *node // The last node of the list
@@ -57,7 +72,7 @@ type List struct {
 	len         int   // The current list length
 }
 
-// New returns an initialized list
+// New returns a new unrolled linked list
 func New(maxElements int) *List {
 	if maxElements < 1 {
 		panic("maxElements must be at least 1")
@@ -72,7 +87,7 @@ func New(maxElements int) *List {
 	return l
 }
 
-// Clear removes all nodes from the list
+// Clear resets the list to zero elements and resets the list's meta data
 func (l *List) Clear() {
 	i := l.first
 
@@ -96,9 +111,10 @@ func (l *List) Len() int {
 	return l.len
 }
 
+// insertElement inserts the given value at index ic in the given node
 func (l *List) insertElement(v interface{}, c *node, ic int) {
 	if c == nil || ic == 0 || len(c.values) == 0 { // begin of node
-		n := l.insertNodeBefore(l.first)
+		n := l.insertNodeBefore(c)
 
 		n.values = append(n.values, v)
 	} else if len(c.values) == ic { // end of node
@@ -127,6 +143,7 @@ func (l *List) insertElement(v interface{}, c *node, ic int) {
 	l.len++
 }
 
+// removeElement removes the value at index ic in the given node
 func (l *List) removeElement(c *node, ic int) interface{} {
 	v := c.values[ic]
 
@@ -162,14 +179,15 @@ func (l *List) removeElement(c *node, ic int) interface{} {
 	return v
 }
 
-// newNode initializes a new node for the list
+// newNode returns a new node for the list
 func (l *List) newNode() *node {
 	return &node{
 		values: make([]interface{}, 0, l.maxElements),
 	}
 }
 
-func (l *List) getNodeAt(i int) (*node, int) {
+// getNode returns the node with the given value index and the elements index, or nil and -1 if there is no such element
+func (l *List) getNode(i int) (*node, int) {
 	for c := l.first; c != nil; c = c.next {
 		if i < len(c.values) {
 			return c, i
@@ -181,16 +199,11 @@ func (l *List) getNodeAt(i int) (*node, int) {
 	return nil, -1
 }
 
-// insertNodeAfter creates a new node, inserts it after a given node and returns the new one
+// insertNodeAfter creates a new node from a value, inserts it after a given node and returns the new one
 func (l *List) insertNodeAfter(p *node) *node {
-	if p == nil && l.len != 0 {
-		return nil
-	}
-
 	n := l.newNode()
 
-	// insert first node
-	if p == nil {
+	if l.len == 0 {
 		l.first = n
 		l.last = n
 	} else {
@@ -209,16 +222,11 @@ func (l *List) insertNodeAfter(p *node) *node {
 	return n
 }
 
-// InsertNodeBefore creates a new node, inserts it before a given node and returns the new one
+// insertNodeBefore creates a new node from a value, inserts it before a given node and returns the new one
 func (l *List) insertNodeBefore(p *node) *node {
-	if p == nil && l.len != 0 {
-		return nil
-	}
-
 	n := l.newNode()
 
-	// insert first node
-	if p == nil {
+	if l.len == 0 {
 		l.first = n
 		l.last = n
 	} else {
@@ -238,7 +246,7 @@ func (l *List) insertNodeBefore(p *node) *node {
 	return n
 }
 
-// removeNode removes a given node from the list
+// remove removes a given node from the list
 func (l *List) removeNode(c *node) *node {
 	if c == nil {
 		return nil
@@ -273,6 +281,7 @@ func (l *List) removeNode(c *node) *node {
 	return c
 }
 
+// newIterator returns a new iterator
 func (l *List) newIterator(current *node, i int) *iterator {
 	return &iterator{
 		i:       i,
@@ -280,8 +289,38 @@ func (l *List) newIterator(current *node, i int) *iterator {
 	}
 }
 
-// First returns the first node of the list or nil
-func (l *List) First() list.Iterator {
+// Chan returns a channel which iterates from the front to the back of the list
+func (l *List) Chan(n int) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		for iter := l.Iter(); iter != nil; iter = iter.Next() {
+			ch <- iter.Get()
+		}
+
+		close(ch)
+	}()
+
+	return ch
+}
+
+// ChanBack returns a channel which iterates from the back to the front of the list
+func (l *List) ChanBack(n int) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		for iter := l.IterBack(); iter != nil; iter = iter.Previous() {
+			ch <- iter.Get()
+		}
+
+		close(ch)
+	}()
+
+	return ch
+}
+
+// Iter returns an iterator which starts at the front of the list, or nil if there are no elements in the list
+func (l *List) Iter() list.Iterator {
 	if l.len == 0 {
 		return nil
 	}
@@ -289,8 +328,8 @@ func (l *List) First() list.Iterator {
 	return l.newIterator(l.first, 0)
 }
 
-// Last returns the last node of the list or nil
-func (l *List) Last() list.Iterator {
+// IterBack returns an iterator which starts at the back of the list, or nil if there are no elements in the list
+func (l *List) IterBack() list.Iterator {
 	if l.len == 0 {
 		return nil
 	}
@@ -298,9 +337,27 @@ func (l *List) Last() list.Iterator {
 	return l.newIterator(l.last, len(l.last.values)-1)
 }
 
-// Get returns the node with the given index or nil
+// First returns the first value of the list and true, or false if there is no value
+func (l *List) First() (interface{}, bool) {
+	if l.len == 0 {
+		return nil, false
+	}
+
+	return l.first.values[0], true
+}
+
+// Last returns the last value of the list and true, or false if there is no value
+func (l *List) Last() (interface{}, bool) {
+	if l.len == 0 {
+		return nil, false
+	}
+
+	return l.last.values[len(l.last.values)-1], true
+}
+
+// Get returns the value of the given index and nil, or an out of bound error if the index is incorrect
 func (l *List) Get(i int) (interface{}, error) {
-	if i > -1 || i < l.len {
+	if i > -1 && i < l.len {
 		for c := l.first; c != nil; c = c.next {
 			if i < len(c.values) {
 				return c.values[i], nil
@@ -313,28 +370,20 @@ func (l *List) Get(i int) (interface{}, error) {
 	return nil, errors.New("index bounds out of range")
 }
 
-// GetFunc returns the first node selected by a given function
+// GetFunc returns the value of the first element selected by the given function and true, or false if there is no such element
 func (l *List) GetFunc(m func(v interface{}) bool) (interface{}, bool) {
-	iter := l.First()
-
-	if iter != nil {
-		for {
-			if m(iter.Value()) {
-				return iter.Value(), true
-			}
-
-			if !iter.Next() {
-				break
-			}
+	for iter := l.Iter(); iter != nil; iter = iter.Next() {
+		if m(iter.Get()) {
+			return iter.Get(), true
 		}
 	}
 
 	return nil, false
 }
 
-// Set replaces the value in the list with the given value
+// Set sets the value of the given index and returns nil, or an out of bound error if the index is incorrect
 func (l *List) Set(i int, v interface{}) error {
-	if i > -1 || i < l.len {
+	if i > -1 && i < l.len {
 		for c := l.first; c != nil; c = c.next {
 			if i < len(c.values) {
 				c.values[i] = v
@@ -349,195 +398,37 @@ func (l *List) Set(i int, v interface{}) error {
 	return errors.New("index bounds out of range")
 }
 
-// SetFunc replaces the value of the first node selected by a given function
+// SetFunc sets the value of the first element selected by the given function and returns true, or false if there is no such element
 func (l *List) SetFunc(m func(v interface{}) bool, v interface{}) bool {
-	iter := l.First()
+	for iter := l.Iter(); iter != nil; iter = iter.Next() {
+		if m(iter.Get()) {
+			iter.Set(v)
 
-	if iter != nil {
-		for {
-			if m(iter.Value()) {
-				iter.Set(v)
-
-				return true
-			}
-
-			if !iter.Next() {
-				break
-			}
+			return true
 		}
 	}
 
 	return false
 }
 
-// Copy returns an exact copy of the list
-func (l *List) Copy() list.List {
-	n := New(l.maxElements)
+// Swap swaps the value of index i with the value of index j
+func (l *List) Swap(i, j int) {
+	ni, ici := l.getNode(i)
+	nj, icj := l.getNode(j)
 
-	iter := l.First()
-
-	if iter != nil {
-		for {
-			n.Push(iter.Value())
-
-			if !iter.Next() {
-				break
-			}
-		}
-	}
-
-	return n
-}
-
-// ToArray returns a copy of the list as slice
-func (l *List) ToArray() []interface{} {
-	a := make([]interface{}, l.len)
-
-	j := 0
-
-	iter := l.First()
-
-	if iter != nil {
-		for {
-			a[j] = iter.Value()
-
-			if !iter.Next() {
-				break
-			}
-
-			j++
-		}
-	}
-
-	return a
-}
-
-// InsertAt creates a new mnode from a value, inserts it at the exact index which must be in range of the list and returns the new node
-func (l *List) InsertAt(i int, v interface{}) error {
-	if i < 0 || i > l.len {
-		return errors.New("index bounds out of range")
-	}
-
-	if i != l.len {
-		c, ic := l.getNodeAt(i)
-
-		l.insertElement(v, c, ic)
-	} else { // getNodeAt returns nil for lastIndex + 1
-		l.Push(v)
-	}
-
-	return nil
-}
-
-// RemoveAt removes a node from the list at the given index
-func (l *List) RemoveAt(i int) (interface{}, error) {
-	if i < 0 || i >= l.len {
-		return nil, errors.New("index bounds out of range")
-	}
-
-	return l.removeElement(l.getNodeAt(i)), nil
-}
-
-// RemoveFirstOccurrence removes the first node with the given value from the list and returns it or nil
-func (l *List) RemoveFirstOccurrence(v interface{}) bool {
-	for n := l.first; n != nil; n = n.next {
-		for ic, c := range n.values {
-			if c == v {
-				l.removeElement(n, ic)
-
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-// RemoveLastOccurrence removes the last node with the given value from the list and returns it or nil
-func (l *List) RemoveLastOccurrence(v interface{}) bool {
-	for n := l.last; n != nil; n = n.previous {
-		for ic := len(n.values) - 1; ic > -1; ic-- {
-			if n.values[ic] == v {
-				l.removeElement(n, ic)
-
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-// Pop removes and returns the last value and true or nil and false
-func (l *List) Pop() (interface{}, bool) {
-	r, _ := l.RemoveAt(l.len - 1)
-
-	return r, r != nil
-}
-
-// Push creates a new node from a value and inserts it as the last node
-func (l *List) Push(v interface{}) {
-	if l.last == nil {
-		l.insertElement(v, nil, 0)
-	} else {
-		l.insertElement(v, l.last, len(l.last.values))
+	if ni != nil && nj != nil {
+		ni.values[ici], nj.values[icj] = nj.values[icj], ni.values[ici]
 	}
 }
 
-// PushList adds the values of a list to the end of the list
-func (l *List) PushList(l2 list.List) {
-	iter := l2.First()
-
-	if iter == nil {
-		return
-	}
-
-	for {
-		l.Push(iter.Value())
-
-		if !iter.Next() {
-			break
-		}
-	}
-}
-
-// Shift removes and returns the first value and true or nil and false
-func (l *List) Shift() (interface{}, bool) {
-	r, _ := l.RemoveAt(0)
-
-	return r, r != nil
-}
-
-// Unshift creates a new node from a value and inserts it as the first node
-func (l *List) Unshift(v interface{}) {
-	l.insertElement(v, l.first, 0)
-}
-
-// UnshiftList adds the values of a list to the front of the list
-func (l *List) UnshiftList(l2 list.List) {
-	iter := l2.First()
-
-	if iter == nil {
-		return
-	}
-
-	for {
-		l.Unshift(iter.Value())
-
-		if !iter.Next() {
-			break
-		}
-	}
-}
-
-// Contains returns true if the value exists in the list
+// Contains returns true if the value exists in the list, or false if it does not
 func (l *List) Contains(v interface{}) bool {
 	_, ok := l.IndexOf(v)
 
 	return ok
 }
 
-// IndexOf returns the first index of an occurence of the given value and true or -1 and false if the value does not exist
+// IndexOf returns the first index of the given value and true, or false if it does not exists
 func (l *List) IndexOf(v interface{}) (int, bool) {
 	i := 0
 
@@ -554,7 +445,7 @@ func (l *List) IndexOf(v interface{}) (int, bool) {
 	return -1, false
 }
 
-// LastIndexOf returns the last index of an occurence of the given value and true or -1 and false if the value does not exist
+// LastIndexOf returns the last index of the given value and true, or false if it does not exists
 func (l *List) LastIndexOf(v interface{}) (int, bool) {
 	i := l.len - 1
 
@@ -569,4 +460,184 @@ func (l *List) LastIndexOf(v interface{}) (int, bool) {
 	}
 
 	return -1, false
+}
+
+// Copy returns an exact copy of the list
+func (l *List) Copy() list.List {
+	n := New(l.maxElements)
+
+	for iter := l.Iter(); iter != nil; iter = iter.Next() {
+		n.Push(iter.Get())
+	}
+
+	return n
+}
+
+// ToArray returns a copy of the list as slice
+func (l *List) Slice() []interface{} {
+	a := make([]interface{}, l.len)
+
+	j := 0
+
+	for iter := l.Iter(); iter != nil; iter = iter.Next() {
+		a[j] = iter.Get()
+
+		j++
+	}
+
+	return a
+}
+
+// InsertAt inserts a value into the list and returns nil, or an out of bound error if the index is incorrect
+func (l *List) InsertAt(i int, v interface{}) error {
+	if i < 0 || i > l.len {
+		return errors.New("index bounds out of range")
+	}
+
+	if i != l.len {
+		c, ic := l.getNode(i)
+
+		l.insertElement(v, c, ic)
+	} else { // getNode returns nil for lastIndex + 1
+		l.Push(v)
+	}
+
+	return nil
+}
+
+// RemoveAt removes and returns the value with the given index and nil, or an out of bound error if the index is incorrect
+func (l *List) RemoveAt(i int) (interface{}, error) {
+	if i < 0 || i >= l.len {
+		return nil, errors.New("index bounds out of range")
+	}
+
+	return l.removeElement(l.getNode(i)), nil
+}
+
+// RemoveFirstOccurrence removes the first occurrence of the given value in the list and returns true, or false if there is no such element
+func (l *List) RemoveFirstOccurrence(v interface{}) bool {
+	for n := l.first; n != nil; n = n.next {
+		for ic, c := range n.values {
+			if c == v {
+				l.removeElement(n, ic)
+
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// RemoveLastOccurrence removes the last occurrence of the given value in the list and returns true, or false if there is no such element
+func (l *List) RemoveLastOccurrence(v interface{}) bool {
+	for n := l.last; n != nil; n = n.previous {
+		for ic := len(n.values) - 1; ic > -1; ic-- {
+			if n.values[ic] == v {
+				l.removeElement(n, ic)
+
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// Pop removes and returns the last element and true, or false if there is no such element
+func (l *List) Pop() (interface{}, bool) {
+	r, _ := l.RemoveAt(l.len - 1)
+
+	return r, r != nil
+}
+
+// Push inserts the given value at the end of the list
+func (l *List) Push(v interface{}) {
+	if l.last == nil {
+		l.insertElement(v, nil, 0)
+	} else {
+		l.insertElement(v, l.last, len(l.last.values))
+	}
+}
+
+// PushList pushes the given list
+func (l *List) PushList(l2 list.List) {
+	for iter := l2.Iter(); iter != nil; iter = iter.Next() {
+		l.Push(iter.Get())
+	}
+}
+
+// Shift removes and returns the first element and true, or false if there is no such element
+func (l *List) Shift() (interface{}, bool) {
+	r, _ := l.RemoveAt(0)
+
+	return r, r != nil
+}
+
+// Unshift inserts the given value at the beginning of the list
+func (l *List) Unshift(v interface{}) {
+	l.insertElement(v, l.first, 0)
+}
+
+// UnshiftList unshifts the given list
+func (l *List) UnshiftList(l2 list.List) {
+	for iter := l2.Iter(); iter != nil; iter = iter.Next() {
+		l.Unshift(iter.Get())
+	}
+}
+
+// MoveAfter moves the element at index i after the element at index m and returns nil, or an out of bound error if an index is incorrect
+func (l *List) MoveAfter(i, m int) error {
+	if i < 0 || i >= l.len {
+		return errors.New("i bounds out of range")
+	} else if m < 0 || m >= l.len {
+		return errors.New("m bounds out of range")
+	}
+
+	if i == m || i-1 == m {
+		return nil
+	}
+
+	v, _ := l.RemoveAt(i)
+
+	if i < m {
+		m--
+	}
+
+	l.InsertAt(m+1, v)
+
+	return nil
+}
+
+// MoveToBack moves the element at index i to the back of the list and returns nil, or an out of bound error if the index is incorrect
+func (l *List) MoveToBack(i int) error {
+	return l.MoveAfter(i, l.len-1)
+}
+
+// MoveBefore moves the element at index i before the element at index m and returns nil, or an out of bound error if an index is incorrect
+func (l *List) MoveBefore(i, m int) error {
+	if i < 0 || i >= l.len {
+		return errors.New("i bounds out of range")
+	} else if m < 0 || m >= l.len {
+		return errors.New("m bounds out of range")
+	}
+
+	if i == m || i == m-1 {
+		return nil
+	}
+
+	v, _ := l.RemoveAt(i)
+
+	if i < m {
+		m--
+	}
+
+	l.InsertAt(m, v)
+
+	return nil
+}
+
+// MoveToFront moves the element at index i to the front of the list and returns nil, or an out of bound error if the index is incorrect
+func (l *List) MoveToFront(i int) error {
+	return l.MoveBefore(i, 0)
 }
