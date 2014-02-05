@@ -5,13 +5,13 @@ import (
 
 	. "github.com/stretchr/testify/assert"
 
-	"github.com/zimmski/container/list"
+	List "github.com/zimmski/container/list"
 	"github.com/zimmski/container/util"
 )
 
 func TestRunAllTests(t *testing.T) {
-	lt := &list.ListTest{
-		New: func(t *testing.T) list.List {
+	lt := &List.ListTest{
+		New: func(t *testing.T) List.List {
 			return New(7)
 		},
 	}
