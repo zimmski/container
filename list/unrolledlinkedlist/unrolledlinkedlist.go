@@ -73,6 +73,7 @@ type List struct {
 }
 
 // New returns a new unrolled linked list
+// @param maxElements defines how many elements should fit in a node
 func New(maxElements int) *List {
 	if maxElements < 1 {
 		panic("maxElements must be at least 1")
@@ -114,14 +115,14 @@ func (l *List) Len() int {
 // insertElement inserts the given value at index ic in the given node
 func (l *List) insertElement(v interface{}, c *node, ic int) {
 	if c == nil || ic == 0 || len(c.values) == 0 { // begin of node
-		n := l.insertNodeBefore(c)
+		n := l.insertNode(c, false)
 
 		n.values = append(n.values, v)
 	} else if len(c.values) == ic { // end of node
 		n := c
 
 		if len(n.values) == cap(n.values) {
-			n = l.insertNodeAfter(c)
+			n = l.insertNode(c, true)
 
 			// move half of the old node if possible
 			if l.maxElements > 3 {
@@ -133,7 +134,7 @@ func (l *List) insertElement(v interface{}, c *node, ic int) {
 
 		n.values = append(n.values, v)
 	} else { // "middle" of the node
-		n := l.insertNodeAfter(c)
+		n := l.insertNode(c, true)
 
 		n.values = append(n.values, c.values[ic:len(c.values)]...)
 		c.values[ic] = v
@@ -199,14 +200,14 @@ func (l *List) getNode(i int) (*node, int) {
 	return nil, -1
 }
 
-// insertNodeAfter creates a new node from a value, inserts it after a given node and returns the new one
-func (l *List) insertNodeAfter(p *node) *node {
+// insertNode creates a new node from a value, inserts it after/before a given node and returns the new one
+func (l *List) insertNode(p *node, after bool) *node {
 	n := l.newNode()
 
 	if l.len == 0 {
 		l.first = n
 		l.last = n
-	} else {
+	} else if after {
 		n.next = p.next
 		if p.next != nil {
 			p.next.previous = n
@@ -217,18 +218,6 @@ func (l *List) insertNodeAfter(p *node) *node {
 		if p == l.last {
 			l.last = n
 		}
-	}
-
-	return n
-}
-
-// insertNodeBefore creates a new node from a value, inserts it before a given node and returns the new one
-func (l *List) insertNodeBefore(p *node) *node {
-	n := l.newNode()
-
-	if l.len == 0 {
-		l.first = n
-		l.last = n
 	} else {
 		if p == l.first {
 			l.first = n
@@ -248,10 +237,6 @@ func (l *List) insertNodeBefore(p *node) *node {
 
 // remove removes a given node from the list
 func (l *List) removeNode(c *node) *node {
-	if c == nil {
-		return nil
-	}
-
 	if c == l.first {
 		l.first = c.next
 		if c.next != nil {
