@@ -375,7 +375,7 @@ func (l *List) Copy() list.List {
 	return n
 }
 
-// ToArray returns a copy of the list as slice
+// Slice returns a copy of the list as slice
 func (l *List) Slice() []interface{} {
 	a := make([]interface{}, l.len)
 
