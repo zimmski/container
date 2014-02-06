@@ -66,10 +66,19 @@ type list struct {
 	copyList   func() *list  // is called for copying the list skeletal
 }
 
+// new returns a new self organizing list skeletal
+func newList() *list {
+	l := new(list)
+
+	l.Clear()
+
+	return l
+}
+
 // NewTranspose returns a new self organizing list with transpose method
 // The transpose method swaps a node with its parent if it gets accessed.
 func NewTranspose() *list {
-	l := new(list)
+	l := newList()
 
 	l.insertNode = func(c *node) {}
 	l.accessNode = func(c *node) {
@@ -80,8 +89,6 @@ func NewTranspose() *list {
 	l.copyList = func() *list {
 		return NewTranspose()
 	}
-
-	l.Clear()
 
 	return l
 }
