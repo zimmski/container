@@ -21,21 +21,21 @@ type ListTest struct {
 func (lt *ListTest) Run(t *testing.T) {
 	lt.NewFilledList(t)
 
-	lt.testBasic(t)
-	lt.testIterator(t)
-	lt.testChannels(t)
-	lt.testSlice(t)
-	lt.testInserts(t)
-	lt.testRemove(t)
-	lt.testRemoveOccurrence(t)
-	lt.testClear(t)
-	lt.testCopy(t)
-	lt.testFind(t)
-	lt.testGetSet(t)
-	lt.testAddLists(t)
-	lt.testFuncs(t)
-	lt.testSwap(t)
-	lt.testMoves(t)
+	lt.TestBasic(t)
+	lt.TestIterator(t)
+	lt.TestChannels(t)
+	lt.TestSlice(t)
+	lt.TestInserts(t)
+	lt.TestRemove(t)
+	lt.TestRemoveOccurrence(t)
+	lt.TestClear(t)
+	lt.TestCopy(t)
+	lt.TestIndexOf(t)
+	lt.TestGetSet(t)
+	lt.TestAddLists(t)
+	lt.TestFuncs(t)
+	lt.TestSwap(t)
+	lt.TestMoves(t)
 }
 
 // FillList fills up a given list with V
@@ -75,7 +75,8 @@ func (lt *ListTest) NewDigitList(t *testing.T) List {
 	return l
 }
 
-func (lt *ListTest) testBasic(t *testing.T) {
+// TestBasic tests basic list functionality
+func (lt *ListTest) TestBasic(t *testing.T) {
 	l := lt.New(t)
 
 	Equal(t, l.Len(), 0)
@@ -160,7 +161,8 @@ func (lt *ListTest) testBasic(t *testing.T) {
 	Equal(t, l.Len(), 0)
 }
 
-func (lt *ListTest) testIterator(t *testing.T) {
+// TestIterator tests list iterators
+func (lt *ListTest) TestIterator(t *testing.T) {
 	// empty iterators
 	l := lt.New(t)
 
@@ -227,7 +229,8 @@ func (lt *ListTest) testIterator(t *testing.T) {
 	Nil(t, iter.Next())
 }
 
-func (lt *ListTest) testChannels(t *testing.T) {
+// TestChannels tests list channels
+func (lt *ListTest) TestChannels(t *testing.T) {
 	// empty channels
 	l := lt.New(t)
 
@@ -298,7 +301,8 @@ func (lt *ListTest) testChannels(t *testing.T) {
 	Equal(t, i, -1)
 }
 
-func (lt *ListTest) testSlice(t *testing.T) {
+// TestSlice tests converting the list to slice
+func (lt *ListTest) TestSlice(t *testing.T) {
 	l := lt.New(t)
 	Equal(t, l.Slice(), []interface{}{})
 
@@ -312,7 +316,8 @@ func (lt *ListTest) testSlice(t *testing.T) {
 	Equal(t, l.Slice(), V[1:len(V)-1])
 }
 
-func (lt *ListTest) testInserts(t *testing.T) {
+// TestInserts tests some insert methods
+func (lt *ListTest) TestInserts(t *testing.T) {
 	// InsertAt
 	l1 := lt.NewFilledList(t)
 
@@ -338,7 +343,8 @@ func (lt *ListTest) testInserts(t *testing.T) {
 	NotNil(t, err)
 }
 
-func (lt *ListTest) testRemove(t *testing.T) {
+// TestRemove tests some remove methods
+func (lt *ListTest) TestRemove(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	// out of bound
@@ -403,7 +409,8 @@ func (lt *ListTest) testRemove(t *testing.T) {
 	Equal(t, l.Slice(), []interface{}{0, 1, 6, 7, 8, 9})
 }
 
-func (lt *ListTest) testRemoveOccurrence(t *testing.T) {
+// TestRemoveOccurrence tests the remove occurrence methods
+func (lt *ListTest) TestRemoveOccurrence(t *testing.T) {
 	l := lt.New(t)
 
 	for i := 0; i < 5; i++ {
@@ -457,7 +464,8 @@ func (lt *ListTest) testRemoveOccurrence(t *testing.T) {
 	Equal(t, l.Slice(), []interface{}{1, 1})
 }
 
-func (lt *ListTest) testClear(t *testing.T) {
+// TestClear tests clearing the list
+func (lt *ListTest) TestClear(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	l.Clear()
@@ -474,7 +482,8 @@ func (lt *ListTest) testClear(t *testing.T) {
 	False(t, ok)
 }
 
-func (lt *ListTest) testCopy(t *testing.T) {
+// TestCopy tests copying a list
+func (lt *ListTest) TestCopy(t *testing.T) {
 	l1 := lt.NewFilledList(t)
 
 	l2 := l1.Copy()
@@ -504,7 +513,8 @@ func (lt *ListTest) testCopy(t *testing.T) {
 	}
 }
 
-func (lt *ListTest) testFind(t *testing.T) {
+// TestIndexOf tests the index of methods
+func (lt *ListTest) TestIndexOf(t *testing.T) {
 	l := lt.New(t)
 
 	for _, vi := range V {
@@ -559,7 +569,8 @@ func (lt *ListTest) testFind(t *testing.T) {
 	Equal(t, ok, false)
 }
 
-func (lt *ListTest) testGetSet(t *testing.T) {
+// TestGetSet tests getters and setters
+func (lt *ListTest) TestGetSet(t *testing.T) {
 	l := lt.New(t)
 
 	for i := range V {
@@ -597,7 +608,8 @@ func (lt *ListTest) testGetSet(t *testing.T) {
 	}
 }
 
-func (lt *ListTest) testAddLists(t *testing.T) {
+// TestAddLists tests the insert list methods
+func (lt *ListTest) TestAddLists(t *testing.T) {
 	l1 := lt.New(t)
 	l1.Push(3)
 	l1.Push(4)
@@ -626,7 +638,8 @@ func (lt *ListTest) testAddLists(t *testing.T) {
 	Equal(t, l1.Slice(), []interface{}{1, 2, 3, 4, 5, 6})
 }
 
-func (lt *ListTest) testFuncs(t *testing.T) {
+// TestFuncs tests all methods with functions as parameters
+func (lt *ListTest) TestFuncs(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	n, ok := l.GetFunc(func(v interface{}) bool {
@@ -650,7 +663,8 @@ func (lt *ListTest) testFuncs(t *testing.T) {
 	Equal(t, l.Slice(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
 }
 
-func (lt *ListTest) testSwap(t *testing.T) {
+// TestSwap tests swap
+func (lt *ListTest) TestSwap(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	l.Swap(0, 0)
@@ -666,7 +680,8 @@ func (lt *ListTest) testSwap(t *testing.T) {
 	Equal(t, l.Slice(), V)
 }
 
-func (lt *ListTest) testMoves(t *testing.T) {
+// TestMoves tests all move methods
+func (lt *ListTest) TestMoves(t *testing.T) {
 	l := lt.NewDigitList(t)
 	ll := l.Len()
 	lll := ll - 1
