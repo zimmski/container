@@ -61,9 +61,9 @@ type list struct {
 	last  *node // The last node of the list
 	len   int   // The current list length
 
-	insertNode func(c *node) // Is called when a new node is created
-	accessNode func(c *node) // is called when a node gets accessed
-	copyList   func() *list  // is called for copying the list skeletal
+	insertNode func(c *node) *node // Is called when a new node is created
+	accessNode func(c *node) *node // is called when a node gets accessed
+	copyList   func() *list        // is called for copying the list skeletal
 }
 
 // new returns a new self organizing list skeletal
@@ -75,16 +75,45 @@ func newList() *list {
 	return l
 }
 
+// NewMoveToFront returns a new self organizing list with move to front method
+// The move to front method puts a node to the front if it gets accessed.
+func NewMoveToFront() *list {
+	l := newList()
+
+	l.insertNode = func(c *node) *node {
+		return c
+	}
+	l.accessNode = func(c *node) *node {
+		if c != l.first {
+			l.removeNode(c)
+			return l.insertNodeBefore(c.value, l.first)
+		}
+
+		return c
+	}
+	l.copyList = func() *list {
+		return NewTranspose()
+	}
+
+	return l
+}
+
 // NewTranspose returns a new self organizing list with transpose method
 // The transpose method swaps a node with its parent if it gets accessed.
 func NewTranspose() *list {
 	l := newList()
 
-	l.insertNode = func(c *node) {}
-	l.accessNode = func(c *node) {
+	l.insertNode = func(c *node) *node {
+		return c
+	}
+	l.accessNode = func(c *node) *node {
 		if c.previous != nil {
 			c.previous.value, c.value = c.value, c.previous.value
+
+			return c.previous
 		}
+
+		return c
 	}
 	l.copyList = func() *list {
 		return NewTranspose()
@@ -122,9 +151,7 @@ func (l *list) newNode(v interface{}) *node {
 		value: v,
 	}
 
-	l.insertNode(c)
-
-	return c
+	return l.insertNode(c)
 }
 
 // getNode returns the node with the given index or nil
@@ -294,11 +321,9 @@ func (l *list) Get(i int) (interface{}, error) {
 func (l *list) GetFunc(m func(v interface{}) bool) (interface{}, bool) {
 	for n := l.first; n != nil; n = n.next {
 		if m(n.value) {
-			v := n.value
+			c := l.accessNode(n)
 
-			l.accessNode(n)
-
-			return v, true
+			return c.value, true
 		}
 	}
 

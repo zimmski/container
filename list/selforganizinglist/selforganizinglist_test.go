@@ -36,6 +36,90 @@ func TestAll(t *testing.T) {
 	//lt.TestFuncs(t)
 }
 
+func TestMoveToFront(t *testing.T) {
+	// GetFunc
+	l := NewMoveToFront()
+
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+
+	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4})
+
+	n, ok := l.GetFunc(func(v interface{}) bool {
+		return v == 0
+	})
+	Equal(t, n, 0)
+	True(t, ok)
+	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4})
+
+	n, ok = l.GetFunc(func(v interface{}) bool {
+		return v == 4
+	})
+	Equal(t, n, 4)
+	True(t, ok)
+	Equal(t, l.Slice(), []interface{}{4, 0, 1, 2, 3})
+
+	n, ok = l.GetFunc(func(v interface{}) bool {
+		return v == 2
+	})
+	Equal(t, n, 2)
+	True(t, ok)
+	Equal(t, l.Slice(), []interface{}{2, 4, 0, 1, 3})
+
+	n, ok = l.GetFunc(func(v interface{}) bool {
+		return v == 2
+	})
+	Equal(t, n, 2)
+	True(t, ok)
+	Equal(t, l.Slice(), []interface{}{2, 4, 0, 1, 3})
+
+	n, ok = l.GetFunc(func(v interface{}) bool {
+		return v == "z"
+	})
+	Nil(t, n)
+	False(t, ok)
+	Equal(t, l.Slice(), []interface{}{2, 4, 0, 1, 3})
+
+	// SetFunc
+	l = NewMoveToFront()
+
+	for i := 0; i < 5; i++ {
+		l.Push(i)
+	}
+
+	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4})
+
+	True(t, l.SetFunc(func(v interface{}) bool {
+		return v == 0
+	}, "null"))
+	Equal(t, l.Slice(), []interface{}{"null", 1, 2, 3, 4})
+
+	True(t, l.SetFunc(func(v interface{}) bool {
+		return v == 4
+	}, "vier"))
+	Equal(t, l.Slice(), []interface{}{"vier", "null", 1, 2, 3})
+
+	True(t, l.SetFunc(func(v interface{}) bool {
+		return v == 2
+	}, "zwei"))
+	Equal(t, l.Slice(), []interface{}{"zwei", "vier", "null", 1, 3})
+
+	True(t, l.SetFunc(func(v interface{}) bool {
+		return v == "zwei"
+	}, "zweihai"))
+	Equal(t, l.Slice(), []interface{}{"zweihai", "vier", "null", 1, 3})
+
+	False(t, l.SetFunc(func(v interface{}) bool {
+		return v == "z"
+	}, 4))
+	Equal(t, l.Slice(), []interface{}{"zweihai", "vier", "null", 1, 3})
+
+	// Copy
+	l2 := l.Copy()
+	Equal(t, l2.Slice(), []interface{}{"zweihai", "vier", "null", 1, 3})
+}
+
 func TestTranspose(t *testing.T) {
 	// GetFunc
 	l := NewTranspose()
@@ -77,8 +161,9 @@ func TestTranspose(t *testing.T) {
 	n, ok = l.GetFunc(func(v interface{}) bool {
 		return v == "z"
 	})
-	Nil(t, nil)
+	Nil(t, n)
 	False(t, ok)
+	Equal(t, l.Slice(), []interface{}{2, 0, 1, 4, 3})
 
 	// SetFunc
 	l = NewTranspose()
@@ -113,4 +198,8 @@ func TestTranspose(t *testing.T) {
 		return v == "z"
 	}, 4))
 	Equal(t, l.Slice(), []interface{}{"zweihai", "null", 1, "vier", 3})
+
+	// Copy
+	l2 := l.Copy()
+	Equal(t, l2.Slice(), []interface{}{"zweihai", "null", 1, "vier", 3})
 }
