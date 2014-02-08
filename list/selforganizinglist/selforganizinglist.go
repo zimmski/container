@@ -75,8 +75,43 @@ func newList() *list {
 	return l
 }
 
-// NewMoveToFront returns a new self organizing list with move to front method
-// The move to front method puts a node to the front if it gets accessed.
+// NewCount returns a new self organizing list with "count" method
+// The "count" method increments an access counter if a node gets accessed.
+// Afterwards the list is sorted based on the nodes counters.
+// To make this method less prone to burst accesses only nodes who are not
+// the first node will get an increased.
+func NewCount() *list {
+	l := newList()
+
+	l.insertNode = func(c *node) *node {
+		c.meta = 0
+
+		return c
+	}
+	l.accessNode = func(c *node) *node {
+		if c != l.first {
+			c.meta = c.meta.(int) + 1
+
+			for c != l.first && c.meta.(int) >= c.previous.meta.(int) {
+				// it is cheaper to just swap values
+				c.previous.value, c.value = c.value, c.previous.value
+				c.previous.meta, c.meta = c.meta, c.previous.meta
+
+				c = c.previous
+			}
+		}
+
+		return c
+	}
+	l.copyList = func() *list {
+		return NewCount()
+	}
+
+	return l
+}
+
+// NewMoveToFront returns a new self organizing list with "move to front" method
+// The "move to front" method puts a node to the front if it gets accessed.
 func NewMoveToFront() *list {
 	l := newList()
 
@@ -92,14 +127,14 @@ func NewMoveToFront() *list {
 		return c
 	}
 	l.copyList = func() *list {
-		return NewTranspose()
+		return NewMoveToFront()
 	}
 
 	return l
 }
 
-// NewTranspose returns a new self organizing list with transpose method
-// The transpose method swaps a node with its parent if it gets accessed.
+// NewTranspose returns a new self organizing list with "transpose" method
+// The "transpose" method swaps a node with its parent if it gets accessed.
 func NewTranspose() *list {
 	l := newList()
 
@@ -108,6 +143,7 @@ func NewTranspose() *list {
 	}
 	l.accessNode = func(c *node) *node {
 		if c.previous != nil {
+			// it is cheaper to just swap values
 			c.previous.value, c.value = c.value, c.previous.value
 
 			return c.previous
