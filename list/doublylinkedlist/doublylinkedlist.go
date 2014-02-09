@@ -373,8 +373,8 @@ func (l *list) Slice() []interface{} {
 	return a
 }
 
-// InsertAt inserts a value into the list and returns nil, or an out of bound error if the index is incorrect
-func (l *list) InsertAt(i int, v interface{}) error {
+// Insert inserts a value into the list and returns nil, or an out of bound error if the index is incorrect
+func (l *list) Insert(i int, v interface{}) error {
 	if i < 0 || i > l.len {
 		return errors.New("index bounds out of range")
 	}
@@ -392,8 +392,8 @@ func (l *list) InsertAt(i int, v interface{}) error {
 	return nil
 }
 
-// RemoveAt removes and returns the value with the given index and nil, or an out of bound error if the index is incorrect
-func (l *list) RemoveAt(i int) (interface{}, error) {
+// Remove removes and returns the value with the given index and nil, or an out of bound error if the index is incorrect
+func (l *list) Remove(i int) (interface{}, error) {
 	if i < 0 || i >= l.len {
 		return nil, errors.New("index bounds out of range")
 	}
@@ -490,13 +490,13 @@ func (l *list) MoveAfter(i, m int) error {
 		return nil
 	}
 
-	v, _ := l.RemoveAt(i)
+	v, _ := l.Remove(i)
 
 	if i < m {
 		m--
 	}
 
-	l.InsertAt(m+1, v)
+	l.Insert(m+1, v)
 
 	return nil
 }
@@ -518,13 +518,13 @@ func (l *list) MoveBefore(i, m int) error {
 		return nil
 	}
 
-	v, _ := l.RemoveAt(i)
+	v, _ := l.Remove(i)
 
 	if i < m {
 		m--
 	}
 
-	l.InsertAt(m, v)
+	l.Insert(m, v)
 
 	return nil
 }

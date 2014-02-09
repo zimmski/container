@@ -47,14 +47,14 @@ func TestSmallMaxElementList(t *testing.T) {
 	}
 
 	// remove a node from the middle
-	l.RemoveAt(4)
-	l.RemoveAt(4)
+	l.Remove(4)
+	l.Remove(4)
 
 	// remove a node from the front
-	l.RemoveAt(0)
-	l.RemoveAt(0)
+	l.Remove(0)
+	l.Remove(0)
 
 	// remove a node from the back
-	l.RemoveAt(l.Len() - 1)
-	l.RemoveAt(l.Len() - 1)
+	l.Remove(l.Len() - 1)
+	l.Remove(l.Len() - 1)
 }

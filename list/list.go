@@ -57,10 +57,10 @@ type List interface {
 	// Slice returns a copy of the list as a slice
 	Slice() []interface{}
 
-	// InsertAt inserts a value into the list and returns nil, or an out of bound error if the index is incorrect
-	InsertAt(i int, v interface{}) error
-	// RemoveAt removes and returns the value with the given index and nil, or an out of bound error if the index is incorrect
-	RemoveAt(i int) (interface{}, error)
+	// Insert inserts a value into the list and returns nil, or an out of bound error if the index is incorrect
+	Insert(i int, v interface{}) error
+	// Remove removes and returns the value with the given index and nil, or an out of bound error if the index is incorrect
+	Remove(i int) (interface{}, error)
 	// RemoveFirstOccurrence removes the first occurrence of the given value in the list and returns true, or false if there is no such element
 	RemoveFirstOccurrence(v interface{}) bool
 	// RemoveLastOccurrence removes the last occurrence of the given value in the list and returns true, or false if there is no such element

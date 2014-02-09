@@ -318,28 +318,28 @@ func (lt *ListTest) TestSlice(t *testing.T) {
 
 // TestInserts tests some insert methods
 func (lt *ListTest) TestInserts(t *testing.T) {
-	// InsertAt
+	// Insert
 	l1 := lt.NewFilledList(t)
 
-	err := l1.InsertAt(0, 0)
+	err := l1.Insert(0, 0)
 	Nil(t, err)
 	Equal(t, l1.Slice(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d"})
 	Equal(t, l1.Len(), VLen+1)
 
-	err = l1.InsertAt(l1.Len(), 0)
+	err = l1.Insert(l1.Len(), 0)
 	Nil(t, err)
 	Equal(t, l1.Slice(), []interface{}{0, 1, "a", 2, "b", 3, "c", 4, "d", 0})
 	Equal(t, l1.Len(), VLen+2)
 
-	err = l1.InsertAt(2, 0)
+	err = l1.Insert(2, 0)
 	Nil(t, err)
 	Equal(t, l1.Slice(), []interface{}{0, 1, 0, "a", 2, "b", 3, "c", 4, "d", 0})
 	Equal(t, l1.Len(), VLen+3)
 
 	// out of bound
-	err = l1.InsertAt(-1, 0)
+	err = l1.Insert(-1, 0)
 	NotNil(t, err)
-	err = l1.InsertAt(l1.Len()+1, 0)
+	err = l1.Insert(l1.Len()+1, 0)
 	NotNil(t, err)
 }
 
@@ -348,13 +348,13 @@ func (lt *ListTest) TestRemove(t *testing.T) {
 	l := lt.NewFilledList(t)
 
 	// out of bound
-	_, err := l.RemoveAt(-1)
+	_, err := l.Remove(-1)
 	NotNil(t, err)
-	_, err = l.RemoveAt(l.Len())
+	_, err = l.Remove(l.Len())
 	NotNil(t, err)
 
 	// Remove Middle
-	n, err := l.RemoveAt(1)
+	n, err := l.Remove(1)
 	Nil(t, err)
 	Equal(t, n, V[1])
 	n, _ = l.Get(1)
@@ -362,7 +362,7 @@ func (lt *ListTest) TestRemove(t *testing.T) {
 	Equal(t, l.Len(), len(V)-1)
 
 	// Remove First
-	n, err = l.RemoveAt(0)
+	n, err = l.Remove(0)
 	Nil(t, err)
 	Equal(t, n, V[0])
 	n, _ = l.First()
@@ -370,7 +370,7 @@ func (lt *ListTest) TestRemove(t *testing.T) {
 	Equal(t, l.Len(), len(V)-2)
 
 	// Remove Last
-	n, err = l.RemoveAt(l.Len() - 1)
+	n, err = l.Remove(l.Len() - 1)
 	Nil(t, err)
 	Equal(t, n, V[len(V)-1])
 	n, _ = l.Last()
@@ -381,7 +381,7 @@ func (lt *ListTest) TestRemove(t *testing.T) {
 	l.Clear()
 	l.Push(23)
 
-	n, err = l.RemoveAt(0)
+	n, err = l.Remove(0)
 	Nil(t, err)
 	Equal(t, n, 23)
 	n, ok := l.First()
@@ -399,13 +399,13 @@ func (lt *ListTest) TestRemove(t *testing.T) {
 	}
 	Equal(t, l.Slice(), []interface{}{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
 
-	l.RemoveAt(2)
+	l.Remove(2)
 	Equal(t, l.Slice(), []interface{}{0, 1, 3, 4, 5, 6, 7, 8, 9})
-	l.RemoveAt(2)
+	l.Remove(2)
 	Equal(t, l.Slice(), []interface{}{0, 1, 4, 5, 6, 7, 8, 9})
-	l.RemoveAt(2)
+	l.Remove(2)
 	Equal(t, l.Slice(), []interface{}{0, 1, 5, 6, 7, 8, 9})
-	l.RemoveAt(2)
+	l.Remove(2)
 	Equal(t, l.Slice(), []interface{}{0, 1, 6, 7, 8, 9})
 }
 
