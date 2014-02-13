@@ -1,0 +1,447 @@
+package binarysearchtree
+
+import (
+	List "github.com/zimmski/container/list"
+	dll "github.com/zimmski/container/list/doublylinkedlist"
+	Tree "github.com/zimmski/container/tree"
+)
+
+type node struct {
+	parent *node
+	left   *node
+	right  *node
+	value  interface{}
+}
+
+type iterator struct {
+	current *node // The current node in traversal
+	stack   List.List
+}
+
+// Next iterates to the next node in the tree and returns the iterator, or nil if there is no next node
+func (iter *iterator) Next() Tree.Iterator {
+	if iter.current != nil {
+		if iter.current.right != nil {
+			iter.current = iter.current.right
+			iter.stack.Push(iter.current)
+
+			for iter.current.left != nil {
+				iter.current = iter.current.left
+
+				iter.stack.Push(iter.current)
+			}
+		}
+
+		if iter.stack.Len() == 0 {
+			iter.current = nil
+		} else {
+			c, _ := iter.stack.Pop()
+			iter.current = c.(*node)
+		}
+	}
+
+	if iter.current == nil {
+		return nil
+	}
+
+	return iter
+}
+
+// Previous iterates to the previous node in the tree and returns the iterator, or nil if there is no previous node
+func (iter *iterator) Previous() Tree.Iterator {
+	// TODO
+
+	return nil
+}
+
+// Get returns the value of the iterator's current node
+func (iter *iterator) Get() interface{} {
+	return iter.current.value
+}
+
+// tree holds a binary search tree
+type tree struct {
+	root    *node
+	len     int // The current node count
+	compare func(a, b interface{}) int
+}
+
+// New returns a new binary search tree
+func New(compare func(a, b interface{}) int) *tree {
+	t := new(tree)
+
+	t.compare = compare
+
+	t.Clear()
+
+	return t
+}
+
+// Clear resets the tree to zero nodes and resets the tree's meta data
+func (t *tree) Clear() {
+	// TODO clear old tree nodes
+
+	t.root = nil
+	t.len = 0
+}
+
+// Len returns the current list length
+func (t *tree) Len() int {
+	return t.len
+}
+
+// newNode returns a new node for the tree
+func (t *tree) newNode(v interface{}) *node {
+	return &node{
+		value: v,
+	}
+}
+
+func (t *tree) getNode(id interface{}) *node {
+	if t.len == 0 {
+		return nil
+	}
+
+	c := t.root
+
+	for {
+		r := t.compare(id, c.value)
+
+		if r == 0 {
+			break
+		} else if r < 0 {
+			if c.left != nil {
+				c = c.left
+			} else {
+				return nil
+			}
+		} else {
+			if c.right != nil {
+				c = c.right
+			} else {
+				return nil
+			}
+		}
+	}
+
+	return c
+}
+
+func (t *tree) getFirstNode() *node {
+	if t.len == 0 {
+		return nil
+	}
+
+	c := t.root
+
+	for c.left != nil {
+		c = c.left
+	}
+
+	return c
+}
+
+func (t *tree) getLastNode() *node {
+	if t.len == 0 {
+		return nil
+	}
+
+	c := t.root
+
+	for c.right != nil {
+		c = c.right
+	}
+
+	return c
+}
+
+func (t *tree) insertNode(v interface{}) *node {
+	n := t.newNode(v)
+
+	if t.len == 0 {
+		t.root = n
+	} else {
+		c := t.root
+
+		for {
+			if t.compare(n.value, c.value) <= 0 {
+				if c.left != nil {
+					c = c.left
+				} else {
+					c.left = n
+					n.parent = c
+
+					break
+				}
+			} else {
+				if c.right != nil {
+					c = c.right
+				} else {
+					c.right = n
+					n.parent = c
+
+					break
+				}
+			}
+		}
+	}
+
+	t.len++
+
+	return nil
+}
+
+func (t *tree) removeNode(c *node) interface{} {
+	if c == nil {
+		return nil
+	}
+
+	if c.left == nil && c.right == nil {
+		// no children
+		if c.parent != nil {
+			if c.parent.left == c {
+				c.parent.left = nil
+			} else {
+				c.parent.right = nil
+			}
+		}
+
+		if t.root == c {
+			t.root = nil
+		}
+	} else if c.left != nil {
+		// left child
+		c.left.parent = c.parent
+
+		if c.parent != nil {
+			if c.parent.left == c {
+				c.parent.left = c.left
+			} else {
+				c.parent.right = c.left
+			}
+		}
+
+		if c.right != nil {
+			// two children
+			// put the right child as the rightest child of the left child
+			r := c.left
+
+			for {
+				if r.right == nil {
+					r.right = c.right
+					c.right.parent = r
+
+					break
+				}
+
+				r = r.right
+			}
+		}
+
+		if t.root == c {
+			t.root = c.left
+		}
+	} else {
+		// right child
+		c.right.parent = c.parent
+
+		if c.parent != nil {
+			if c.parent.left == c {
+				c.parent.left = c.right
+			} else {
+				c.parent.right = c.right
+			}
+		}
+
+		if t.root == c {
+			t.root = c.right
+		}
+	}
+
+	c.parent = nil
+	c.left = nil
+	c.right = nil
+
+	t.len--
+
+	return c.value
+}
+
+// Chan returns a channel which iterates from the front to the back of the tree
+func (t *tree) Chan(n int) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		for iter := t.Iter(); iter != nil; iter = iter.Next() {
+			ch <- iter.Get()
+		}
+
+		close(ch)
+	}()
+
+	return ch
+}
+
+// ChanBack returns a channel which iterates from the back to the front of the tree
+func (t *tree) ChanBack(n int) <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		for iter := t.IterBack(); iter != nil; iter = iter.Previous() {
+			ch <- iter.Get()
+		}
+
+		close(ch)
+	}()
+
+	return ch
+}
+
+// Iter returns an iterator which starts at the front of the tree, or nil if there are no nodes in the tree
+func (t *tree) Iter() Tree.Iterator {
+	if t.len == 0 {
+		return nil
+	}
+
+	iter := &iterator{
+		current: t.root,
+		stack:   dll.New(),
+	}
+
+	iter.stack.Push(iter.current)
+
+	for iter.current.left != nil {
+		iter.current = iter.current.left
+
+		iter.stack.Push(iter.current)
+	}
+
+	c, _ := iter.stack.Pop()
+	iter.current = c.(*node)
+
+	return iter
+}
+
+// IterBack returns an iterator which starts at the back of the tree, or nil if there are no nodes in the tree
+func (t *tree) IterBack() Tree.Iterator {
+	// TODO
+
+	return nil
+}
+
+// First returns the first value of the tree and true, or false if there is no value
+func (t *tree) First() (interface{}, bool) {
+	if t.len == 0 {
+		return nil, false
+	}
+
+	n := t.getFirstNode()
+
+	return n.value, true
+}
+
+// Last returns the last value of the tree and true, or false if there is no value
+func (t *tree) Last() (interface{}, bool) {
+	if t.len == 0 {
+		return nil, false
+	}
+
+	n := t.getLastNode()
+
+	return n.value, true
+}
+
+// Get returns the value of the node identified by the given id value and true, or false if there is no such node
+func (t *tree) Get(id interface{}) (interface{}, bool) {
+	n := t.getNode(id)
+
+	if n == nil {
+		return nil, false
+	}
+
+	return n.value, true
+}
+
+// GetFunc returns the value of the first node selected by the given function and true, or false if there is no such node
+func (t *tree) GetFunc(m func(v interface{}) bool) (interface{}, bool) {
+	// TODO
+
+	return nil, false
+}
+
+// Set sets the value of the node identified by the given id value and returns true, or false if there is no such node
+func (t *tree) Set(id int, v interface{}) bool {
+	n := t.getNode(id)
+
+	if n == nil {
+		return false
+	}
+
+	n.value = v
+
+	return true
+}
+
+// SetFunc sets the value of the first node selected by the given function and returns true, or false if there is no such node
+func (t *tree) SetFunc(m func(v interface{}) bool, v interface{}) bool {
+	// TODO
+
+	return false
+}
+
+// Contains returns true if a node identified by the given id value exists in the tree, or false if it does not
+func (t *tree) Contains(id interface{}) bool {
+	return t.getNode(id) != nil
+}
+
+// Copy returns an exact copy of the tree
+func (t *tree) Copy() Tree.Tree {
+	// TODO
+
+	return nil
+}
+
+// Slice returns a copy of the tree as a slice
+func (t *tree) Slice() []interface{} {
+	a := make([]interface{}, t.len)
+
+	j := 0
+
+	for iter := t.Iter(); iter != nil; iter = iter.Next() {
+		a[j] = iter.Get()
+
+		j++
+	}
+
+	return a
+}
+
+// Insert inserts a new node into the tree with the given value
+func (t *tree) Insert(v interface{}) {
+	t.insertNode(v)
+}
+
+// Remove removes the node identified by the given id value and returns its value and true, or false if there is no such node
+func (t *tree) Remove(id interface{}) (interface{}, bool) {
+	n := t.getNode(id)
+
+	if n == nil {
+		return nil, false
+	}
+
+	return t.removeNode(n), true
+}
+
+// Pop removes the last node and returns its value and true, or false if there is no such node
+func (t *tree) Pop() (interface{}, bool) {
+	r := t.removeNode(t.getLastNode())
+
+	return r, r != nil
+}
+
+// Shift removes the first node and returns its value and true, or false if there is no such node
+func (t *tree) Shift() (interface{}, bool) {
+	r := t.removeNode(t.getFirstNode())
+
+	return r, r != nil
+}
