@@ -53,8 +53,8 @@ type Tree interface {
 
 	// Insert inserts a new node into the tree with the given value
 	Insert(v interface{})
-	// Remove removes the node identified by the given id value and returns true, or false if there is no such node
-	Remove(id interface{}) bool
+	// Remove removes the node identified by the given id value and returns its value and true, or false if there is no such node
+	Remove(id interface{}) (interface{}, bool)
 	// Pop removes the last node and returns its value and true, or false if there is no such node
 	Pop() (interface{}, bool)
 	// Shift removes the first node and returns its value and true, or false if there is no such node
