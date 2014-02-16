@@ -39,7 +39,7 @@ type Tree interface {
 	// GetFunc returns the value of the first node selected by the given function and true, or false if there is no such node
 	GetFunc(m func(v interface{}) bool) (interface{}, bool)
 	// Set sets the value of the node identified by the given id value and returns true, or false if there is no such node
-	Set(id int, v interface{}) bool
+	Set(id interface{}, v interface{}) bool
 	// SetFunc sets the value of the first node selected by the given function and returns true, or false if there is no such node
 	SetFunc(m func(v interface{}) bool, v interface{}) bool
 
