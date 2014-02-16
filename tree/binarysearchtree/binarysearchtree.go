@@ -127,6 +127,30 @@ func (t *tree) getNode(id interface{}) *node {
 	return c
 }
 
+func (t *tree) getNodeFunc(m func(v interface{}) bool) *node {
+	stack := dll.New()
+
+	stack.Push(t.root)
+
+	for stack.Len() != 0 {
+		cr, _ := stack.Pop()
+		c := cr.(*node)
+
+		if m(c.value) {
+			return c
+		}
+
+		if c.right != nil {
+			stack.Push(c.right)
+		}
+		if c.left != nil {
+			stack.Push(c.left)
+		}
+	}
+
+	return nil
+}
+
 func (t *tree) getFirstNode() *node {
 	if t.len == 0 {
 		return nil
@@ -324,9 +348,16 @@ func (t *tree) Iter() Tree.Iterator {
 
 // IterBack returns an iterator which starts at the back of the tree, or nil if there are no nodes in the tree
 func (t *tree) IterBack() Tree.Iterator {
-	// TODO
+	if t.len == 0 {
+		return nil
+	}
 
-	return nil
+	iter := &iterator{
+		current: t.root,
+		stack:   dll.New(),
+	}
+
+	return iter
 }
 
 // First returns the first value of the tree and true, or false if there is no value
@@ -364,29 +395,43 @@ func (t *tree) Get(id interface{}) (interface{}, bool) {
 
 // GetFunc returns the value of the first node selected by the given function and true, or false if there is no such node
 func (t *tree) GetFunc(m func(v interface{}) bool) (interface{}, bool) {
-	// TODO
+	n := t.getNodeFunc(m)
 
-	return nil, false
+	if n == nil {
+		return nil, false
+	}
+
+	return n.value, true
 }
 
 // Set sets the value of the node identified by the given id value and returns true, or false if there is no such node
-func (t *tree) Set(id int, v interface{}) bool {
+func (t *tree) Set(id interface{}, v interface{}) bool {
 	n := t.getNode(id)
 
 	if n == nil {
 		return false
 	}
 
-	n.value = v
+	t.removeNode(n)
+
+	t.Insert(v)
 
 	return true
 }
 
 // SetFunc sets the value of the first node selected by the given function and returns true, or false if there is no such node
 func (t *tree) SetFunc(m func(v interface{}) bool, v interface{}) bool {
-	// TODO
+	n := t.getNodeFunc(m)
 
-	return false
+	if n == nil {
+		return false
+	}
+
+	t.removeNode(n)
+
+	t.Insert(v)
+
+	return true
 }
 
 // Contains returns true if a node identified by the given id value exists in the tree, or false if it does not
@@ -396,9 +441,41 @@ func (t *tree) Contains(id interface{}) bool {
 
 // Copy returns an exact copy of the tree
 func (t *tree) Copy() Tree.Tree {
-	// TODO
+	l2 := New(t.compare)
 
-	return nil
+	stack := dll.New()
+
+	stack.Push([3]*node{t.root, nil, nil})
+
+	for stack.Len() != 0 {
+		cr, _ := stack.Pop()
+		c := cr.([3]*node)
+
+		n := &node{
+			value: c[0].value,
+		}
+
+		l2.len++
+
+		if c[1] != nil {
+			n.parent = c[1]
+			c[1].left = n
+		} else if c[2] != nil {
+			n.parent = c[2]
+			c[2].right = n
+		} else {
+			l2.root = n
+		}
+
+		if c[0].left != nil {
+			stack.Push([3]*node{c[0].left, n, nil})
+		}
+		if c[0].right != nil {
+			stack.Push([3]*node{c[0].right, nil, n})
+		}
+	}
+
+	return l2
 }
 
 // Slice returns a copy of the tree as a slice
