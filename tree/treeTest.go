@@ -340,37 +340,37 @@ func (tt *TreeTest) TestGetSet(t *testing.T) {
 	tr := tt.New(t)
 
 	for i := range V {
-		n, err := tr.Get(i)
+		n, ok := tr.Get(V[i])
 
+		False(t, ok)
 		Nil(t, n)
-		NotNil(t, err)
 
-		err = tr.Set(i, i+10)
+		ok = tr.Set(V[i], i+10)
 
-		NotNil(t, err)
+		False(t, ok)
 
-		n, err = tr.Get(i)
+		n, ok = tr.Get(i + 10)
 
+		False(t, ok)
 		Nil(t, n)
-		NotNil(t, err)
 	}
 
 	tt.FillTree(t, tr)
 
-	for i, vi := range V {
-		n, err := tr.Get(i)
+	for i := range V {
+		n, ok := tr.Get(V[i])
 
-		Equal(t, n, vi)
-		Nil(t, err)
+		True(t, ok)
+		Equal(t, n, V[i])
 
-		err = tr.Set(i, i+10)
+		ok = tr.Set(V[i], i+10)
 
-		Nil(t, err)
+		True(t, ok)
 
-		n, err = tr.Get(i)
+		n, ok = tr.Get(i + 10)
 
+		True(t, ok)
 		Equal(t, n, i+10)
-		Nil(t, err)
 	}
 }
 
@@ -379,22 +379,22 @@ func (tt *TreeTest) TestFuncs(t *testing.T) {
 	tr := tt.NewFilledTree(t)
 
 	n, ok := tr.GetFunc(func(v interface{}) bool {
-		return v == "a"
+		return v == 2
 	})
 	Equal(t, V[1], n)
 	True(t, ok)
 	n, ok = tr.GetFunc(func(v interface{}) bool {
-		return v == "z"
+		return v == 100
 	})
 	Nil(t, nil)
 	False(t, ok)
 
 	True(t, tr.SetFunc(func(v interface{}) bool {
-		return v == 2
-	}, 3))
-	Equal(t, tr.Slice(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+		return v == 4
+	}, 99))
+	Equal(t, tr.Slice(), []interface{}{1, 2, 3, 5, 6, 99})
 	False(t, tr.SetFunc(func(v interface{}) bool {
-		return v == "z"
-	}, 4))
-	Equal(t, tr.Slice(), []interface{}{1, "a", 3, "b", 3, "c", 4, "d"})
+		return v == 100
+	}, 100))
+	Equal(t, tr.Slice(), []interface{}{1, 2, 3, 5, 6, 99})
 }
