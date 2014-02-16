@@ -591,10 +591,10 @@ func (lt *ListTest) TestGetSet(t *testing.T) {
 
 	lt.FillList(t, l)
 
-	for i, vi := range V {
+	for i := range V {
 		n, err := l.Get(i)
 
-		Equal(t, n, vi)
+		Equal(t, n, V[i])
 		Nil(t, err)
 
 		err = l.Set(i, i+10)
