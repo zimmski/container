@@ -12,3 +12,9 @@ You can find a list of data structures I want to implement on Wikipedia's excell
 * [Linked list](/list/linkedlist)
 * [Self organizing list](/list/selforganizinglist)
 * [Unrolled linked list](/list/unrolledlinkedlist)
+
+# Trees
+
+## Binary Trees
+
+* [Binary search tree](/tree/binarysearchtree)
