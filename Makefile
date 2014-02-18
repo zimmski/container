@@ -11,4 +11,6 @@ lint: clean
 	golint $(GOPATH)/src/github.com/zimmski/container
 test: clean
 	go test ./...
+testcover: clean
+	go test -cover ./...
 
