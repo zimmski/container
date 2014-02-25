@@ -353,7 +353,7 @@ func (t *tree) IterBack() Tree.Iterator {
 	}
 
 	iter := &iterator{
-		current: t.root,
+		current: t.getLastNode(),
 		stack:   dll.New(),
 	}
 
