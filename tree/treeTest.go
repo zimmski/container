@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"sort"
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
@@ -192,6 +193,58 @@ func (tt *TreeTest) TestIterator(t *testing.T) {
 
 	iter = tr.IterBack()
 	Nil(t, iter.Next())
+
+	// iterate only within the left lane
+	tr = tt.New(t)
+
+	for i := 6; i > -1; i-- {
+		tr.Insert(i)
+	}
+
+	iter = tr.Iter()
+
+	for i := 0; i <= 6; i++ {
+		Equal(t, iter.Get(), i)
+
+		iter = iter.Next()
+	}
+	Nil(t, iter)
+
+	// iterate only within the right lane
+	tr = tt.New(t)
+
+	for i := 0; i < 6; i++ {
+		tr.Insert(i)
+	}
+
+	iter = tr.Iter()
+
+	for i := 0; i < 6; i++ {
+		Equal(t, iter.Get(), i)
+
+		iter = iter.Next()
+	}
+	Nil(t, iter)
+
+	// full tree
+	tr = tt.New(t)
+
+	cV := []int{7, 3, 2, 0, 1, 5, 4, 6, 11, 9, 8, 10, 13, 12, 14}
+
+	for _, v := range cV {
+		tr.Insert(v)
+	}
+
+	sort.Ints(cV)
+
+	iter = tr.Iter()
+
+	for _, v := range cV {
+		Equal(t, iter.Get(), v)
+
+		iter = iter.Next()
+	}
+	Nil(t, iter)
 }
 
 // TestChannels tests tree channels
