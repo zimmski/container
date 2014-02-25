@@ -79,7 +79,27 @@ func New(compare func(a, b interface{}) int) *tree {
 
 // Clear resets the tree to zero nodes and resets the tree's meta data
 func (t *tree) Clear() {
-	// TODO clear old tree nodes
+	if t.len != 0 {
+		stack := dll.New()
+
+		stack.Push(t.root)
+
+		for stack.Len() != 0 {
+			cr, _ := stack.Pop()
+			c := cr.(*node)
+
+			c.parent = nil
+
+			if c.right != nil {
+				stack.Push(c.right)
+				c.right = nil
+			}
+			if c.left != nil {
+				stack.Push(c.left)
+				c.left = nil
+			}
+		}
+	}
 
 	t.root = nil
 	t.len = 0
