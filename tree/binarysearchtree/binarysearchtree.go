@@ -98,21 +98,18 @@ func (iter *iterator) Previous() Tree.Iterator {
 
 				} else {
 					c, _ := iter.stack.Pop()
-					if iter.current.parent == c && c.(*node).right != iter.current {
-						if iter.stack.Len() != 0 {
-							// we stopped at a leaf and we have to go one lane left
-							// so we go up until we are at the junction of the two lanes
-							if iter.tree.compare(c.(*node).value, iter.current.value) > 0 {
-								for iter.tree.compare(c.(*node).parent.value, iter.current.value) > 0 {
-									c, _ = iter.stack.Pop()
-								}
-								iter.stack.Pop()
+
+					if iter.stack.Len() != 0 {
+						// we stopped at a leaf and we have to go one lane left
+						// so we go up until we are at the junction of the two lanes
+						if iter.tree.compare(c.(*node).value, iter.current.value) > 0 {
+							for iter.tree.compare(c.(*node).parent.value, iter.current.value) > 0 {
+								c, _ = iter.stack.Pop()
 							}
+							iter.stack.Pop()
 						}
-						iter.current = c.(*node).parent
-					} else {
-						iter.current = c.(*node)
 					}
+					iter.current = c.(*node).parent
 				}
 			} else {
 				iter.current = iter.current.parent
