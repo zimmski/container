@@ -301,6 +301,7 @@ func (tt *TreeTest) TestIterator(t *testing.T) {
 
 	testFullTree([]int{7, 3, 2, 0, 1, 5, 4, 6, 11, 9, 8, 10, 13, 12, 14})
 	testFullTree([]int{8, 3, 1, 0, 2, 6, 5, 4, 7, 13, 10, 9, 11, 12, 15, 14, 16})
+	testFullTree([]int{5, 1, 0, 4, 3, 2})
 
 	// change direction in the middle of the tree
 	tr = tt.NewFilledTree(t)

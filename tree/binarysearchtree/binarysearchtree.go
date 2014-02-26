@@ -52,10 +52,7 @@ func (iter *iterator) Next() Tree.Iterator {
 func (iter *iterator) Previous() Tree.Iterator {
 	if iter.current != nil {
 		if iter.current.left != nil {
-
-			if last, _ := iter.stack.Last(); iter.stack.Len() == 0 || iter.tree.compare(last.(*node).value, iter.current.value) != 0 {
-				iter.stack.Push(iter.current)
-			}
+			iter.stack.Push(iter.current)
 
 			iter.current = iter.current.left
 
@@ -84,7 +81,7 @@ func (iter *iterator) Previous() Tree.Iterator {
 
 					// the stack contains only the left lane of the tree
 					// and we stopped at the first element
-					if it == nil && (last.left == iter.current || last == iter.current) {
+					if it == nil && last.left == iter.current {
 						iter.stack.Clear()
 						iter.current = nil
 
