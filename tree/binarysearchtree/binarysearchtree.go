@@ -14,6 +14,7 @@ type node struct {
 }
 
 type iterator struct {
+	tree    *tree
 	current *node // The current node in traversal
 	stack   List.List
 }
@@ -49,9 +50,72 @@ func (iter *iterator) Next() Tree.Iterator {
 
 // Previous iterates to the previous node in the tree and returns the iterator, or nil if there is no previous node
 func (iter *iterator) Previous() Tree.Iterator {
-	// TODO
+	if iter.current != nil {
+		if iter.current.left != nil {
+			iter.stack.Push(iter.current)
 
-	return nil
+			iter.current = iter.current.left
+
+			for iter.current.right != nil {
+				iter.stack.Push(iter.current)
+
+				iter.current = iter.current.right
+			}
+		} else {
+			if iter.stack.Len() != 0 {
+				// check if we stopped at the last element
+				if c, _ := iter.stack.First(); c.(*node).parent == nil {
+					var last, p *node
+
+					it := iter.stack.Iter()
+
+					for ; it != nil; it = it.Next() {
+						last = it.Get().(*node)
+
+						if last.parent != p || (p != nil && p.left != last) {
+							break
+						}
+
+						p = last
+					}
+
+					// the stack contains only the left lane of the tree
+					// and we stopped at the first element
+					if it == nil && last.left == iter.current {
+						iter.stack.Clear()
+						iter.current = nil
+
+						return nil
+					}
+				}
+
+				c, _ := iter.stack.Pop()
+				if iter.current.parent == c && c.(*node).right != iter.current {
+					if iter.stack.Len() != 0 {
+						// we stopped at a leaf and we have to go one lane left
+						// so we go up until we are at the junction of the two lanes
+						if iter.tree.compare(c.(*node).value, iter.current.value) > 0 {
+							for iter.tree.compare(c.(*node).parent.value, iter.current.value) > 0 {
+								c, _ = iter.stack.Pop()
+							}
+							iter.stack.Pop()
+						}
+					}
+					iter.current = c.(*node).parent
+				} else {
+					iter.current = c.(*node)
+				}
+			} else {
+				iter.current = iter.current.parent
+			}
+		}
+	}
+
+	if iter.current == nil {
+		return nil
+	}
+
+	return iter
 }
 
 // Get returns the value of the iterator's current node
@@ -348,6 +412,7 @@ func (t *tree) Iter() Tree.Iterator {
 	}
 
 	iter := &iterator{
+		tree:    t,
 		current: t.root,
 		stack:   dll.New(),
 	}
@@ -373,6 +438,7 @@ func (t *tree) IterBack() Tree.Iterator {
 	}
 
 	iter := &iterator{
+		tree:    t,
 		current: t.getLastNode(),
 		stack:   dll.New(),
 	}

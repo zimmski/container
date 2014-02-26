@@ -227,24 +227,80 @@ func (tt *TreeTest) TestIterator(t *testing.T) {
 	Nil(t, iter)
 
 	// full tree
-	tr = tt.New(t)
+	testFullTree := func(cV []int) {
+		max := len(cV) - 1
 
-	cV := []int{7, 3, 2, 0, 1, 5, 4, 6, 11, 9, 8, 10, 13, 12, 14}
+		tr = tt.New(t)
 
-	for _, v := range cV {
-		tr.Insert(v)
+		for _, v := range cV {
+			tr.Insert(v)
+		}
+
+		sort.Ints(cV)
+
+		iter = tr.Iter()
+
+		for _, v := range cV {
+			Equal(t, iter.Get(), v)
+
+			iter = iter.Next()
+		}
+		Nil(t, iter)
+
+		// traverse back and forth
+		iter = tr.Iter()
+		i = 0
+
+		for iter.Get() != max {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Next()
+			i++
+		}
+
+		for iter.Get() != 0 {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Previous()
+			i--
+		}
+
+		for iter.Get() != max {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Next()
+			i++
+		}
+		Nil(t, iter.Next())
+
+		iter = tr.IterBack()
+		i = len(cV) - 1
+
+		for iter.Get() != 0 {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Previous()
+			i--
+		}
+
+		for iter.Get() != max {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Next()
+			i++
+		}
+
+		for iter.Get() != 0 {
+			Equal(t, iter.Get(), cV[i])
+
+			iter = iter.Previous()
+			i--
+		}
+		Nil(t, iter.Previous())
 	}
 
-	sort.Ints(cV)
-
-	iter = tr.Iter()
-
-	for _, v := range cV {
-		Equal(t, iter.Get(), v)
-
-		iter = iter.Next()
-	}
-	Nil(t, iter)
+	testFullTree([]int{7, 3, 2, 0, 1, 5, 4, 6, 11, 9, 8, 10, 13, 12, 14})
+	testFullTree([]int{8, 3, 1, 0, 2, 6, 5, 4, 7, 13, 10, 9, 11, 12, 15, 14, 16})
 }
 
 // TestChannels tests tree channels
