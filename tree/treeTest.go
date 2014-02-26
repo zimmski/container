@@ -301,6 +301,37 @@ func (tt *TreeTest) TestIterator(t *testing.T) {
 
 	testFullTree([]int{7, 3, 2, 0, 1, 5, 4, 6, 11, 9, 8, 10, 13, 12, 14})
 	testFullTree([]int{8, 3, 1, 0, 2, 6, 5, 4, 7, 13, 10, 9, 11, 12, 15, 14, 16})
+
+	// change direction in the middle of the tree
+	tr = tt.NewFilledTree(t)
+
+	iter = tr.Iter()
+
+	for i := 1; i <= 3; i++ {
+		Equal(t, iter.Get(), V[i-1])
+		iter = iter.Next()
+	}
+	Equal(t, iter.Get(), V[3])
+
+	for i := 4; i > 0; i-- {
+		Equal(t, iter.Get(), V[i-1])
+		iter = iter.Previous()
+	}
+	Nil(t, iter)
+
+	iter = tr.IterBack()
+
+	for i := 6; i > 3; i-- {
+		Equal(t, iter.Get(), V[i-1])
+		iter = iter.Previous()
+	}
+	Equal(t, iter.Get(), V[2])
+
+	for i := 3; i <= 6; i++ {
+		Equal(t, iter.Get(), V[i-1])
+		iter = iter.Next()
+	}
+	Nil(t, iter)
 }
 
 // TestChannels tests tree channels

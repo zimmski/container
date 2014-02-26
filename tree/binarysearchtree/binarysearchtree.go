@@ -52,7 +52,10 @@ func (iter *iterator) Next() Tree.Iterator {
 func (iter *iterator) Previous() Tree.Iterator {
 	if iter.current != nil {
 		if iter.current.left != nil {
-			iter.stack.Push(iter.current)
+
+			if last, _ := iter.stack.Last(); iter.stack.Len() == 0 || iter.tree.compare(last.(*node).value, iter.current.value) != 0 {
+				iter.stack.Push(iter.current)
+			}
 
 			iter.current = iter.current.left
 
@@ -63,7 +66,7 @@ func (iter *iterator) Previous() Tree.Iterator {
 			}
 		} else {
 			if iter.stack.Len() != 0 {
-				// check if we stopped at the last element
+				// check if we stopped at the first element
 				if c, _ := iter.stack.First(); c.(*node).parent == nil {
 					var last, p *node
 
@@ -81,7 +84,7 @@ func (iter *iterator) Previous() Tree.Iterator {
 
 					// the stack contains only the left lane of the tree
 					// and we stopped at the first element
-					if it == nil && last.left == iter.current {
+					if it == nil && (last.left == iter.current || last == iter.current) {
 						iter.stack.Clear()
 						iter.current = nil
 
@@ -89,21 +92,30 @@ func (iter *iterator) Previous() Tree.Iterator {
 					}
 				}
 
-				c, _ := iter.stack.Pop()
-				if iter.current.parent == c && c.(*node).right != iter.current {
-					if iter.stack.Len() != 0 {
-						// we stopped at a leaf and we have to go one lane left
-						// so we go up until we are at the junction of the two lanes
-						if iter.tree.compare(c.(*node).value, iter.current.value) > 0 {
-							for iter.tree.compare(c.(*node).parent.value, iter.current.value) > 0 {
-								c, _ = iter.stack.Pop()
-							}
-							iter.stack.Pop()
-						}
+				if iter.tree.compare(iter.current.parent.value, iter.current.value) < 0 {
+					iter.current = iter.current.parent
+
+					if last, _ := iter.stack.Last(); iter.tree.compare(last.(*node).value, iter.current.value) == 0 {
+						iter.stack.Pop()
 					}
-					iter.current = c.(*node).parent
+
 				} else {
-					iter.current = c.(*node)
+					c, _ := iter.stack.Pop()
+					if iter.current.parent == c && c.(*node).right != iter.current {
+						if iter.stack.Len() != 0 {
+							// we stopped at a leaf and we have to go one lane left
+							// so we go up until we are at the junction of the two lanes
+							if iter.tree.compare(c.(*node).value, iter.current.value) > 0 {
+								for iter.tree.compare(c.(*node).parent.value, iter.current.value) > 0 {
+									c, _ = iter.stack.Pop()
+								}
+								iter.stack.Pop()
+							}
+						}
+						iter.current = c.(*node).parent
+					} else {
+						iter.current = c.(*node)
+					}
 				}
 			} else {
 				iter.current = iter.current.parent
