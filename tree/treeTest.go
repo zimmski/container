@@ -32,6 +32,7 @@ func (tt *TreeTest) Run(t *testing.T) {
 	tt.TestRemove(t)
 	tt.TestClear(t)
 	tt.TestCopy(t)
+	tt.TestContains(t)
 	tt.TestGetSet(t)
 	tt.TestFuncs(t)
 }
@@ -473,6 +474,23 @@ func (tt *TreeTest) TestCopy(t *testing.T) {
 				break
 			}
 		}
+	}
+}
+
+// TestContains tests contains methods
+func (tt *TreeTest) TestContains(t *testing.T) {
+	tr := tt.New(t)
+
+	for _, vi := range V {
+		ok := tr.Contains(vi)
+		Equal(t, ok, false)
+	}
+
+	tr = tt.NewFilledTree(t)
+
+	for _, vi := range V {
+		ok := tr.Contains(vi)
+		Equal(t, ok, true)
 	}
 }
 
