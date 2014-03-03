@@ -481,6 +481,31 @@ func (tt *TreeTest) TestRemove(t *testing.T) {
 	False(t, ok)
 	v, ok = tr.Remove(100)
 	False(t, ok)
+
+	// prepare special cases
+	tr = tt.New(t)
+
+	for _, v := range []interface{}{4, 1, 3, 2, 5, 6, 12, 10, 7, 8, 9, 11} {
+		tr.Insert(v)
+	}
+
+	// remove right child with left child
+	v, ok = tr.Remove(3)
+	True(t, ok)
+	Equal(t, v, 3)
+	Equal(t, tr.Slice(), []interface{}{1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+
+	// remove right child with right child
+	v, ok = tr.Remove(6)
+	True(t, ok)
+	Equal(t, v, 6)
+	Equal(t, tr.Slice(), []interface{}{1, 2, 4, 5, 7, 8, 9, 10, 11, 12})
+
+	// remove with two children put removed right children at the end of left right children
+	v, ok = tr.Remove(10)
+	True(t, ok)
+	Equal(t, v, 10)
+	Equal(t, tr.Slice(), []interface{}{1, 2, 4, 5, 7, 8, 9, 11, 12})
 }
 
 // TestClear tests clearing the list
