@@ -425,7 +425,62 @@ func (tt *TreeTest) TestSlice(t *testing.T) {
 
 // TestRemove tests some remove methods
 func (tt *TreeTest) TestRemove(t *testing.T) {
-	// TODO
+	tr := tt.NewFilledTree(t)
+
+	// remove leaf
+	v, ok := tr.Remove(4)
+	True(t, ok)
+	Equal(t, v, 4)
+	Equal(t, tr.Slice(), []interface{}{1, 2, 3, 5, 6})
+
+	// remove parent with left child
+	v, ok = tr.Remove(3)
+	True(t, ok)
+	Equal(t, v, 3)
+	Equal(t, tr.Slice(), []interface{}{1, 2, 5, 6})
+
+	// remove parent with right child
+	v, ok = tr.Remove(1)
+	True(t, ok)
+	Equal(t, v, 1)
+	Equal(t, tr.Slice(), []interface{}{2, 5, 6})
+
+	// remove parent with both childs
+	v, ok = tr.Remove(5)
+	True(t, ok)
+	Equal(t, v, 5)
+	Equal(t, tr.Slice(), []interface{}{2, 6})
+
+	// remove last
+	v, ok = tr.Remove(2)
+	True(t, ok)
+	Equal(t, v, 2)
+	Equal(t, tr.Slice(), []interface{}{6})
+
+	v, ok = tr.Remove(6)
+	True(t, ok)
+	Equal(t, v, 6)
+	Equal(t, tr.Slice(), []interface{}{})
+
+	// remove nothing
+	v, ok = tr.Remove(-100)
+	False(t, ok)
+	v, ok = tr.Remove(100)
+	False(t, ok)
+
+	tr = tt.New(t)
+
+	v, ok = tr.Remove(-100)
+	False(t, ok)
+	v, ok = tr.Remove(100)
+	False(t, ok)
+
+	tr = tt.NewFilledTree(t)
+
+	v, ok = tr.Remove(-100)
+	False(t, ok)
+	v, ok = tr.Remove(100)
+	False(t, ok)
 }
 
 // TestClear tests clearing the list
