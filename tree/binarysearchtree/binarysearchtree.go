@@ -6,17 +6,19 @@ import (
 	Tree "github.com/zimmski/container/tree"
 )
 
+// node holds a single node of a binary search tree
 type node struct {
-	parent *node
-	left   *node
-	right  *node
-	value  interface{}
+	parent *node       // The parent of this node
+	left   *node       // The left child of this node
+	right  *node       // The right child of this node
+	value  interface{} // The value stored with this node
 }
 
+// iterator holds the iterator for a binary search tree
 type iterator struct {
-	tree    *tree
-	current *node // The current node in traversal
-	stack   List.List
+	tree    *tree     // The tree of this iterator
+	current *node     // The current node in traversal
+	stack   List.List // The stack holds the current state in the traversal
 }
 
 // Next iterates to the next node in the tree and returns the iterator, or nil if there is no next node
@@ -131,9 +133,9 @@ func (iter *iterator) Get() interface{} {
 
 // tree holds a binary search tree
 type tree struct {
-	root    *node
-	len     int // The current node count
-	compare func(a, b interface{}) int
+	root    *node                      // The root node of the tree
+	len     int                        // The current node count
+	compare func(a, b interface{}) int // Compare two values for the tree node order
 }
 
 // New returns a new binary search tree
@@ -175,7 +177,7 @@ func (t *tree) Clear() {
 	t.len = 0
 }
 
-// Len returns the current list length
+// Len returns the current node count
 func (t *tree) Len() int {
 	return t.len
 }
@@ -187,6 +189,7 @@ func (t *tree) newNode(v interface{}) *node {
 	}
 }
 
+// getNode returns the node identified by the given id value, or nil if there is no such node
 func (t *tree) getNode(id interface{}) *node {
 	if t.len == 0 {
 		return nil
@@ -217,6 +220,7 @@ func (t *tree) getNode(id interface{}) *node {
 	return c
 }
 
+// getNodeFunc returns the first node selected by the given function, or nil if there is no such node
 func (t *tree) getNodeFunc(m func(v interface{}) bool) *node {
 	stack := dll.New()
 
@@ -241,6 +245,7 @@ func (t *tree) getNodeFunc(m func(v interface{}) bool) *node {
 	return nil
 }
 
+// getFirstNode returns the node with the first value of the tree
 func (t *tree) getFirstNode() *node {
 	if t.len == 0 {
 		return nil
@@ -255,6 +260,7 @@ func (t *tree) getFirstNode() *node {
 	return c
 }
 
+// getLastNode returns the node with the last value of the tree
 func (t *tree) getLastNode() *node {
 	if t.len == 0 {
 		return nil
@@ -269,7 +275,8 @@ func (t *tree) getLastNode() *node {
 	return c
 }
 
-func (t *tree) insertNode(v interface{}) *node {
+// insert creates a new node with the given value and adds the node accordingly to the tree
+func (t *tree) insert(v interface{}) *node {
 	n := t.newNode(v)
 
 	if t.len == 0 {
@@ -305,6 +312,7 @@ func (t *tree) insertNode(v interface{}) *node {
 	return nil
 }
 
+// removeNode removes the given node from the tree
 func (t *tree) removeNode(c *node) interface{} {
 	if c == nil {
 		return nil
@@ -587,7 +595,7 @@ func (t *tree) Slice() []interface{} {
 
 // Insert inserts a new node into the tree with the given value
 func (t *tree) Insert(v interface{}) {
-	t.insertNode(v)
+	t.insert(v)
 }
 
 // Remove removes the node identified by the given id value and returns its value and true, or false if there is no such node
