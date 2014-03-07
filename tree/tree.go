@@ -19,6 +19,8 @@ type Tree interface {
 	Clear()
 	// Len returns the current node count
 	Len() int
+	// Empty returns true if the current node count is zero
+	Empty() bool
 
 	// Chan returns a channel which iterates from the front to the back of the tree
 	Chan(n int) <-chan interface{}

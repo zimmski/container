@@ -182,6 +182,11 @@ func (t *tree) Len() int {
 	return t.len
 }
 
+// Empty returns true if the current node count is zero
+func (t *tree) Empty() bool {
+	return t.len == 0
+}
+
 // newNode returns a new node for the tree
 func (t *tree) newNode(v interface{}) *node {
 	return &node{

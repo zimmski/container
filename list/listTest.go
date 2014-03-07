@@ -80,6 +80,7 @@ func (lt *ListTest) TestBasic(t *testing.T) {
 	l := lt.New(t)
 
 	Equal(t, l.Len(), 0)
+	True(t, l.Empty())
 	n, ok := l.First()
 	False(t, ok)
 	Nil(t, n)
@@ -120,6 +121,11 @@ func (lt *ListTest) TestBasic(t *testing.T) {
 		Equal(t, V[i], n)
 		True(t, ok)
 		Equal(t, l.Len(), i)
+		if i == 0 {
+			True(t, l.Empty())
+		} else {
+			False(t, l.Empty())
+		}
 
 		i--
 		n, ok = l.Pop()
@@ -129,6 +135,7 @@ func (lt *ListTest) TestBasic(t *testing.T) {
 	Nil(t, n)
 	False(t, ok)
 	Equal(t, l.Len(), 0)
+	True(t, l.Empty())
 
 	for i, va := range V {
 		l.Unshift(va)

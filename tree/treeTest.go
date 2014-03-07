@@ -73,6 +73,7 @@ func (tt *TreeTest) TestBasic(t *testing.T) {
 	tr := tt.New(t)
 
 	Equal(t, tr.Len(), 0)
+	True(t, tr.Empty())
 	n, ok := tr.First()
 	False(t, ok)
 	Nil(t, n)
@@ -113,6 +114,11 @@ func (tt *TreeTest) TestBasic(t *testing.T) {
 		Equal(t, V[i], n)
 		True(t, ok)
 		Equal(t, tr.Len(), i)
+		if i == 0 {
+			True(t, tr.Empty())
+		} else {
+			False(t, tr.Empty())
+		}
 
 		i--
 		n, ok = tr.Pop()
@@ -122,6 +128,7 @@ func (tt *TreeTest) TestBasic(t *testing.T) {
 	Nil(t, n)
 	False(t, ok)
 	Equal(t, tr.Len(), 0)
+	True(t, tr.Empty())
 
 	tt.FillTree(t, tr)
 

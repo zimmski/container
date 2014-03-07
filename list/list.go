@@ -19,6 +19,8 @@ type List interface {
 	Clear()
 	// Len returns the current list length
 	Len() int
+	// Empty returns true if the current list length is zero
+	Empty() bool
 
 	// Chan returns a channel which iterates from the front to the back of the list
 	Chan(n int) <-chan interface{}

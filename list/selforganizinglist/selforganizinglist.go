@@ -181,6 +181,11 @@ func (l *list) Len() int {
 	return l.len
 }
 
+// Empty returns true if the current list length is zero
+func (l *list) Empty() bool {
+	return l.len == 0
+}
+
 // newNode returns a new node for the list
 func (l *list) newNode(v interface{}) *node {
 	c := &node{

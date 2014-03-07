@@ -112,6 +112,11 @@ func (l *list) Len() int {
 	return l.len
 }
 
+// Empty returns true if the current list length is zero
+func (l *list) Empty() bool {
+	return l.len == 0
+}
+
 // insertElement inserts the given value at index ic in the given node
 func (l *list) insertElement(v interface{}, c *node, ic int) {
 	if c == nil || ic == 0 || len(c.values) == 0 { // begin of node
