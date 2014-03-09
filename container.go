@@ -1,5 +1,16 @@
 package container
 
+// Iterator defines a container iterator
+type Iterator interface {
+	// Next iterates to the next element in the container and returns the iterator, or nil if there is no next element
+	Next() Iterator
+	// Previous iterates to the previous element in the container and returns the iterator, or nil if there is no previous element
+	Previous() Iterator
+
+	// Get returns the value of the iterator's current element
+	Get() interface{}
+}
+
 // Container defines a container
 type Container interface {
 	// Clear resets the container to zero elements and resets the container's meta data
