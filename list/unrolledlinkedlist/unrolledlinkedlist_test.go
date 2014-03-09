@@ -58,3 +58,23 @@ func TestSmallMaxElementList(t *testing.T) {
 	l.Remove(l.Len() - 1)
 	l.Remove(l.Len() - 1)
 }
+
+func BenchmarkPushSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New(7)
+		},
+	}
+
+	lb.BenchmarkPushSequentiel(b)
+}
+
+func BenchmarkUnshiftSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New(7)
+		},
+	}
+
+	lb.BenchmarkUnshiftSequentiel(b)
+}

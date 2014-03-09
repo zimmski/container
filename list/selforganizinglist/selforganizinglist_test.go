@@ -287,3 +287,23 @@ func TestTranspose(t *testing.T) {
 	l2 := l.Copy()
 	Equal(t, l2.Slice(), []interface{}{"zweihai", "null", 1, "vier", 3})
 }
+
+func BenchmarkPushSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return NewTranspose()
+		},
+	}
+
+	lb.BenchmarkPushSequentiel(b)
+}
+
+func BenchmarkUnshiftSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return NewTranspose()
+		},
+	}
+
+	lb.BenchmarkUnshiftSequentiel(b)
+}

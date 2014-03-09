@@ -37,3 +37,23 @@ func TestFindParentNode(t *testing.T) {
 
 	Nil(t, l.findParentNode(n))
 }
+
+func BenchmarkPushSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New()
+		},
+	}
+
+	lb.BenchmarkPushSequentiel(b)
+}
+
+func BenchmarkUnshiftSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New()
+		},
+	}
+
+	lb.BenchmarkUnshiftSequentiel(b)
+}

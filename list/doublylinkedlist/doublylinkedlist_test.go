@@ -15,3 +15,23 @@ func TestRunAllTests(t *testing.T) {
 
 	lt.Run(t)
 }
+
+func BenchmarkPushSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New()
+		},
+	}
+
+	lb.BenchmarkPushSequentiel(b)
+}
+
+func BenchmarkUnshiftSequentiel(b *testing.B) {
+	lb := &List.ListBenchmark{
+		New: func(b *testing.B) List.List {
+			return New()
+		},
+	}
+
+	lb.BenchmarkUnshiftSequentiel(b)
+}
