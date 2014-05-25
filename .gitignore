@@ -21,11 +21,3 @@ _testmain.go
 
 *.exe
 
-# editors and IDEs
-
-container.sublime-project
-container.sublime-workspace
-
-# tmp files
-coverage.out
-
