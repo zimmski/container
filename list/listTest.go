@@ -3,7 +3,7 @@ package list
 import (
 	"testing"
 
-	. "github.com/stretchr/testify/assert"
+	. "github.com/zimmski/container/test/assert"
 )
 
 // V holds the value for basic list tests

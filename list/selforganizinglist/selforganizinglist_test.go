@@ -3,7 +3,7 @@ package selforganizinglist
 import (
 	"testing"
 
-	. "github.com/stretchr/testify/assert"
+	. "github.com/zimmski/container/test/assert"
 
 	List "github.com/zimmski/container/list"
 )

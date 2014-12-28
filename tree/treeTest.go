@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	. "github.com/stretchr/testify/assert"
+	. "github.com/zimmski/container/test/assert"
 )
 
 // VRaw holds the unsorted value for basic tree tests
