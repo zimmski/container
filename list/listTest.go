@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/zimmski/container/test/assert"
+	"github.com/zimmski/go-leak"
 )
 
 // V holds the value for basic list tests
@@ -19,23 +20,27 @@ type ListTest struct {
 
 // Run executes all basic list tests
 func (lt *ListTest) Run(t *testing.T) {
-	lt.NewFilledList(t)
+	Equal(t, 0, leak.GoRoutineLeaks(func() {
+		lt.NewFilledList(t)
 
-	lt.TestBasic(t)
-	lt.TestIterator(t)
-	lt.TestChannels(t)
-	lt.TestSlice(t)
-	lt.TestInserts(t)
-	lt.TestRemove(t)
-	lt.TestRemoveOccurrence(t)
-	lt.TestClear(t)
-	lt.TestCopy(t)
-	lt.TestIndexOf(t)
-	lt.TestGetSet(t)
-	lt.TestAddLists(t)
-	lt.TestFuncs(t)
-	lt.TestSwap(t)
-	lt.TestMoves(t)
+		lt.TestBasic(t)
+		lt.TestIterator(t)
+		lt.TestChannels(t)
+		lt.TestSlice(t)
+		lt.TestInserts(t)
+		lt.TestRemove(t)
+		lt.TestRemoveOccurrence(t)
+		lt.TestClear(t)
+		lt.TestCopy(t)
+		lt.TestIndexOf(t)
+		lt.TestGetSet(t)
+		lt.TestAddLists(t)
+		lt.TestFuncs(t)
+		lt.TestSwap(t)
+		lt.TestMoves(t)
+
+		lt.TestLeaks(t)
+	}))
 }
 
 // FillList fills up a given list with V
@@ -789,4 +794,27 @@ func (lt *ListTest) TestMoves(t *testing.T) {
 	l.Push(0)
 	Equal(t, l.Slice(), []interface{}{1, 4, 0, 2, 3, 0})
 	Equal(t, l.Len(), ll+1)
+}
+
+// TestLeaks test for leaks
+func (lt *ListTest) TestLeaks(t *testing.T) {
+	l := lt.New(t)
+
+	Equal(t, 0, leak.MemoryLeaks(func() {
+		l.Push(1)
+		l.Push(2)
+		l.Push(3)
+
+		l.Pop()
+		l.Pop()
+		l.Pop()
+	}))
+
+	Equal(t, 0, leak.MemoryLeaks(func() {
+		l.Push(1)
+		l.Push(2)
+		l.Push(3)
+
+		l.Clear()
+	}))
 }
