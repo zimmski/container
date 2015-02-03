@@ -1,4 +1,4 @@
-# container [![GoDoc](https://godoc.org/github.com/zimmski/container?status.png)](https://godoc.org/github.com/zimmski/container)
+# container [![GoDoc](https://godoc.org/github.com/zimmski/container?status.png)](https://godoc.org/github.com/zimmski/container) [![Build Status](https://travis-ci.org/zimmski/container.svg?branch=master)](https://travis-ci.org/zimmski/container)
 
 Go comes currently only with a few types of data structures. I want to change this disadvantage with this repository. (Besides learning some new things of course.) As I'm doing this in my spare time I do not expect on finishing this project anytime soon.
 
